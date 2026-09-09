@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Local Claude Code settings (machine-specific)
+.claude/
+
+# Local SQLite database (generated at runtime)
+*.db
+
+# User-uploaded images: local vault content, not source
+proof_of_concept/storage/images/*
+!proof_of_concept/storage/images/.gitkeep
