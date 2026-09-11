@@ -49,20 +49,24 @@ Backend (FastAPI)
 
 The frontend stays a simple executor. All spatial filtering logic lives on the server.
 
+## Design constraint: API-first backend
+
+The backend never renders HTML (no server-side templating). It only exposes a JSON API.
+
+The frontend is a fully standalone set of static files (HTML/CSS/JS) that talks to the API exclusively through `fetch()`.
+
+This is a deliberate choice: keeping frontend and backend strictly decoupled means the same frontend code could later be dropped into an Obsidian plugin view (an Electron desktop app with Node.js access can spawn the Python backend as a child process and talk to it over localhost), without rewriting the UI. Not part of this project's scope, but the architecture is kept compatible with it at no extra cost.
+
 ## Tech stack
 
 - **Backend**: Python, FastAPI, SQLAlchemy, SQLite
 - **Frontend**: HTML, CSS, JavaScript/TypeScript, Canvas 2D (no framework for the MVP)
 - **Image processing**: Pillow (multi-resolution thumbnail generation)
 
-## Development order
+## Documentation
 
-1. Isolated proof of concept: image upload, disk storage (UUID-renamed copy), minimal persistence, serving route — Pillow/thumbnails deferred until there's a concrete performance need
-2. Data model (positions, dimensions, file paths)
-3. Canvas: grid, zoom, pan (no images yet)
-4. Image import and simple display (database persistence)
-5. Multi-selection and transformations (translation, scaling)
-6. Dynamic viewport-based loading (backend filtering)
+- [`docs/decisions.md`](docs/decisions.md): technical decisions and the reasoning behind each one
+- [`docs/roadmap.md`](docs/roadmap.md): schedule and development order
 
 ## Status
 
