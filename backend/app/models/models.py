@@ -5,14 +5,16 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
 
+
 class Canvas(Base):
-    __tablename__="canvas"
+    __tablename__ = "canvas"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nom: Mapped[str] = mapped_column()
 
     elements: Mapped[list["Element"]] = relationship(back_populates="canvas")
     groupes: Mapped[list["Groupe"]] = relationship(back_populates="canvas")
+
 
 class Groupe(Base):
     __tablename__ = "groupes"
@@ -29,6 +31,8 @@ class Groupe(Base):
     elements: Mapped[list["Element"]] = relationship(back_populates="groupe")
 
 
+# Table parente de l'héritage à tables jointes : Image et Texte n'ajoutent que
+# leurs champs propres, reliés ici par une FK 1-pour-1 sur "id".
 class Element(Base):
     __tablename__ = "elements"
 
@@ -47,6 +51,7 @@ class Element(Base):
     groupe: Mapped[Optional["Groupe"]] = relationship(back_populates="elements")
 
     __mapper_args__ = {
+        # "type" détermine quelle sous-classe (Image/Texte) reconstruire à la lecture.
         "polymorphic_on": "type",
         "polymorphic_identity": "element",
     }
@@ -55,6 +60,7 @@ class Element(Base):
 class Image(Element):
     __tablename__ = "images"
 
+    # FK vers elements.id, pas une clé indépendante : c'est ça, la jointure de l'héritage.
     id: Mapped[int] = mapped_column(ForeignKey("elements.id"), primary_key=True)
     nom_original: Mapped[str] = mapped_column()
     chemin_fichier: Mapped[str] = mapped_column(unique=True)

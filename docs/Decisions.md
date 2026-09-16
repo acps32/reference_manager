@@ -10,7 +10,7 @@ Trace des choix techniques et de leur raison, pour ne pas avoir à se souvenir "
 
 **Copie dans un dossier local (`storage/images/`), jamais de référence au chemin d'origine.** Logique "coffre-fort", comme les pièces jointes d'Obsidian. Chaque fichier est renommé en UUID à la copie pour éviter les collisions de noms ; le nom d'origine est gardé en métadonnée pour l'affichage.
 
-**Pas de génération de thumbnail (Pillow) pour le MVP.** C'est une optimisation, pas le problème critique identifié par le formateur (qui portait sur la capacité à faire de la gestion d'image du tout, testée via la preuve de concept upload).
+**Pillow utilisée pour lire les dimensions réelles de l'image à l'import (métadonnées), pas pour générer des thumbnails.** Revirement du 14 septembre : connaître la vraie taille du fichier s'est révélé nécessaire dès l'import, pour que `width`/`height` sur `Element` reflètent l'image plutôt qu'une valeur arbitraire (200x200 utilisé un temps). La génération de miniatures reste, elle, hors scope : c'est une optimisation de performance, pas le problème critique identifié par le formateur (qui portait sur la capacité à faire de la gestion d'image du tout, testée via la preuve de concept upload) — à activer seulement si le nombre d'images le justifie.
 
 ## Plateforme
 
@@ -36,6 +36,7 @@ Trace des choix techniques et de leur raison, pour ne pas avoir à se souvenir "
 
 - Symétrie horizontale/verticale des images
 - Interface de sélection/gestion de plusieurs canevas
+- Chemin de stockage configurable par canevas (actuellement un seul dossier fixe, `backend/storage/`, câblé en dur). Dépend du multi-canevas ci-dessus — à concevoir ensemble à ce moment-là, pas avant. Impliquera de remplacer le `StaticFiles` actuel par une route dynamique (lisant le chemin en base par canevas), avec une vraie réflexion sécurité (empêcher qu'un chemin sorte du dossier autorisé)
 - Interface de création de groupes (le cadre à la Blender) et d'ajout de texte
 - Génération de thumbnails / LOD
 - Plugin Obsidian, application bureau

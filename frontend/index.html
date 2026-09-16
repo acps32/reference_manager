@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reference Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="js/api.js"></script>
+    <script defer src="js/canvas.js"></script>
+    <script defer src="js/main.js"></script>
+</head>
+<body>
+    <input type="file" id="upload-input" hidden>
+    <canvas id="canvas"></canvas>
+
+    <ul id="context-menu" class="context-menu hidden">
+        <li data-action="upload">Importer une image</li>
+        <li data-action="delete">Supprimer</li>
+    </ul>
+</body>
+</html>
