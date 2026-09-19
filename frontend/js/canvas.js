@@ -57,6 +57,24 @@ function getImageAt(worldX, worldY) {
     return null;
 }
 
+// Renvoie toutes les images (loadedImages) dont le rectangle touche le rectangle donné (coordonnées monde, x1/y1 et x2/y2 dans n'importe quel ordre).
+function getImagesInRect(x1, y1, x2, y2) {
+    const left = Math.min(x1, x2);
+    const right = Math.max(x1, x2);
+    const top = Math.min(y1, y2);
+    const bottom = Math.max(y1, y2);
+
+    return loadedImages.filter((image) => {
+        if (!image.visible) return false;
+        return (
+            image.x < right &&
+            image.x + image.width > left &&
+            image.y < bottom &&
+            image.y + image.height > top
+        );
+    });
+}
+
 // ===== Dessin =====
 
 function drawGrid() {
@@ -92,19 +110,42 @@ function drawImages() {
         if (!image.visible) continue; // "supprimée" (voir menu contextuel) : ne s'affiche plus
 
         const screen = worldToScreen(image.x, image.y);
-        ctx.drawImage(
-            image.element,
-            screen.x,
-            screen.y,
-            image.width * zoom,
-            image.height * zoom
-        );
+        const width = image.width * zoom;
+        const height = image.height * zoom;
+
+        ctx.drawImage(image.element, screen.x, screen.y, width, height);
+
+        // selectedImages vient de main.js (mis à jour au clic) : même partage de globales entre scripts que loadedImages.
+        if (selectedImages.has(image)) {
+            ctx.strokeStyle = "#86817e";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(screen.x, screen.y, width, height);
+        }
     }
+}
+
+function drawSelectionBox() {
+    if (!isSelecting) return;
+
+    // Coordonnées écran directes (comme le menu contextuel) : pas de
+    // worldToScreen nécessaire. width/height négatifs si on glisse vers la
+    // gauche/le haut : strokeRect/fillRect gèrent ça très bien tout seuls.
+    const x = selectStartX;
+    const y = selectStartY;
+    const width = lastX - selectStartX;
+    const height = lastY - selectStartY;
+
+    ctx.fillStyle = "rgba(38, 132, 255, 0.15)";
+    ctx.fillRect(x, y, width, height);
+    ctx.strokeStyle = "#2684ff";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, width, height);
 }
 
 function render() {
     drawGrid();
     drawImages();
+    drawSelectionBox();
 }
 
 // ===== Import de fichiers (glisser-déposer, coller) =====

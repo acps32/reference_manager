@@ -1,3 +1,16 @@
+// ===== Variable d'états =====
+
+let isPanning = false; // true pendant un glisser au bouton du milieu (déplacement de la caméra, pas d'une image)
+let lastX = 0; // dernière position souris (écran) connue, pour calculer le delta au prochain mousemove
+let lastY = 0;
+let draggedImage = null; // image sous le curseur au début du glisser au bouton gauche, ou null si aucune
+let dragGroup = []; // toutes les images qui bougent ensemble pendant ce glisser (draggedImage + le reste de la sélection si elle en fait partie, sinon juste draggedImage)
+let dragStartPositions = new Map(); // position d'origine de chaque image de dragGroup avant le glisser, pour savoir si ça a bougé et pour l'undo
+let selectedImages = new Set(); // image actuellement sélectionnée (outline dans drawImages, voir canvas.js)
+let isSelecting = false; // true quand on est en train de faire une sélection
+let selectStartX = 0;
+let selectStartY = 0;
+
 resizeCanvas();
 render();
 
@@ -17,13 +30,6 @@ window.addEventListener("resize", () => {
     render();
 });
 
-let isPanning = false;
-let lastX = 0;
-let lastY = 0;
-let draggedImage = null;
-let dragStartX = 0;
-let dragStartY = 0;
-
 // Pile d'annulation (Ctrl+Z) : chaque entrée dit "cette image avait ces
 // valeurs avant l'action" (voir undo() plus bas).
 let undoStack = [];
@@ -41,26 +47,88 @@ async function undo() {
     render();
 }
 
+async function deleteImages(images) {
+    const targets = [...images]; // copie : on va modifier selectedImages pendant la boucle
+    if (targets.length === 0) return;
+
+    for (const image of targets) {
+        pushUndo(image, { visible: true }); // pour Ctrl+Z
+        image.visible = false;
+        selectedImages.delete(image);
+    }
+
+    render();
+
+    await Promise.all(
+        targets.map((image) =>
+            patchImage(image.id, { visible: false }).catch((error) => console.error(error))
+        )
+    );
+}
+
+async function copyImageToClipboard(image) {
+    // Passe par un canvas hors-écran pour forcer du PNG : c'est le seul
+    // format que l'API Clipboard garantit de savoir écrire, peu importe le
+    // format d'origine du fichier (jpg, gif...). image.element est déjà
+    // chargé (voir loadImage() dans api.js), pas besoin de re-fetch.
+    const offscreen = document.createElement("canvas");
+    offscreen.width = image.element.naturalWidth;
+    offscreen.height = image.element.naturalHeight;
+    offscreen.getContext("2d").drawImage(image.element, 0, 0);
+
+    const blob = await new Promise((resolve) => offscreen.toBlob(resolve, "image/png"));
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+}
+
 canvas.addEventListener("mousedown", (event) => {
+    // lastX et Y enregistre les dernière position de la souris
     lastX = event.clientX;
     lastY = event.clientY;
 
-    if (event.button === 1){
+    if (event.button === 1){ // clic molette === déplacer le canvas
         isPanning = true;
-    } else if (event.button === 0) {
+    } else if (event.button === 0) { // clic gauche 
         const worldPos = screenToWorld(event.clientX, event.clientY);
         draggedImage = getImageAt(worldPos.x, worldPos.y);
+        if (!event.shiftKey) {
+            if (draggedImage && selectedImages.has(draggedImage)) {
+                // Déjà dans la sélection : on ne touche à rien, pour pouvoir
+                // déplacer tout le groupe sans le réduire à cette seule image.
+            } else {
+                selectedImages.clear();
+                if (draggedImage) {
+                    selectedImages.add(draggedImage);
+                } else { // clic sur le vide : démarre un rectangle de sélection (remplace la sélection)
+                    isSelecting = true;
+                    selectStartX = event.clientX;
+                    selectStartY = event.clientY;
+                }
+            }
+        } else if (draggedImage) {
+            if (selectedImages.has(draggedImage)) {
+                selectedImages.delete(draggedImage);
+            } else {
+                selectedImages.add(draggedImage);
+            }
+        } else { // Maj + clic sur le vide : démarre un rectangle de sélection additif (ne vide pas la sélection existante)
+            isSelecting = true;
+            selectStartX = event.clientX;
+            selectStartY = event.clientY;
+        }
 
         if (draggedImage) {
-            dragStartX = draggedImage.x;
-            dragStartY = draggedImage.y;
+            // Si l'image cliquée fait partie de la sélection, tout le groupe
+            // bouge ensemble ; sinon, seule cette image est déplacée.
+            dragGroup = selectedImages.has(draggedImage) ? [...selectedImages] : [draggedImage];
+            dragStartPositions = new Map(dragGroup.map((image) => [image, { x: image.x, y: image.y }]));
 
             // Auto-avant-plan : l'image cliquée passe en dernière position du
             // tableau (= dessinée en dernier = affichée au-dessus).
             loadedImages.splice(loadedImages.indexOf(draggedImage), 1);
             loadedImages.push(draggedImage);
-            render();
         }
+
+        render(); // aussi hors du if : un clic dans le vide doit effacer l'outline de l'ancienne sélection
     }
 });
 
@@ -70,8 +138,15 @@ window.addEventListener("mousemove", (event) => {
         offsetX += event.clientX - lastX;
         offsetY += event.clientY - lastY;
     } else if (draggedImage) {
-        draggedImage.x += (event.clientX - lastX) / zoom;
-        draggedImage.y += (event.clientY - lastY) / zoom;
+        const dx = (event.clientX - lastX) / zoom;
+        const dy = (event.clientY - lastY) / zoom;
+        for (const image of dragGroup) {
+            image.x += dx;
+            image.y += dy;
+        }
+    } else if (isSelecting) {
+        // rien à faire ici : lastX/lastY (mis à jour plus bas) et render()
+        // suffisent, drawSelectionBox() (canvas.js) les lit directement
     } else {
         return;
     }
@@ -87,15 +162,29 @@ window.addEventListener("mouseup", () => {
     // Une seule requête ici, une fois le glisser terminé - pas à chaque
     // mousemove (voir la discussion sur le sujet).
     if (draggedImage) {
-        const moved = draggedImage.x !== dragStartX || draggedImage.y !== dragStartY;
-        if (moved) {
-            pushUndo(draggedImage, { x: dragStartX, y: dragStartY });
-            patchImage(draggedImage.id, { x: draggedImage.x, y: draggedImage.y })
-                .catch((error) => console.error(error));
+        for (const image of dragGroup) {
+            const start = dragStartPositions.get(image);
+            const moved = image.x !== start.x || image.y !== start.y;
+            if (moved) {
+                pushUndo(image, { x: start.x, y: start.y });
+                patchImage(image.id, { x: image.x, y: image.y })
+                    .catch((error) => console.error(error));
+            }
         }
+    } else if (isSelecting) {
+        const start = screenToWorld(selectStartX, selectStartY);
+        const end = screenToWorld(lastX, lastY);
+        for (const image of getImagesInRect(start.x, start.y, end.x, end.y)) {
+            selectedImages.add(image);
+        }
+
+        isSelecting = false;
+        render();
     }
 
+
     draggedImage = null;
+    dragGroup = [];
 });
 
 const MIN_ZOOM = 0.1;
@@ -151,23 +240,21 @@ function hideContextMenu() {
     contextMenu.classList.add("hidden");
 }
 
-// Capture (pas bubble) : se déclenche avant le "click" éventuel sur un item
-// du menu, mais ferme quand même le menu si on clique n'importe où ailleurs.
+// Capture (pas bubble) : se déclenche avant le "click" éventuel sur un item du menu, mais ferme quand même le menu si on clique n'importe où ailleurs.
 window.addEventListener("mousedown", (event) => {
     if (!contextMenu.contains(event.target)) hideContextMenu();
 }, { capture: true });
 
 contextMenu.addEventListener("click", async (event) => {
     const action = event.target.dataset.action;
+
     hideContextMenu();
 
     if (action === "upload") {
         document.getElementById("upload-input").click();
+
     } else if (action === "delete" && contextMenuTarget) {
-        pushUndo(contextMenuTarget, { visible: true });
-        contextMenuTarget.visible = false;
-        await patchImage(contextMenuTarget.id, { visible: false });
-        render();
+        await deleteImages([contextMenuTarget]);
     }
 });
 
@@ -177,5 +264,18 @@ window.addEventListener("keydown", (event) => {
     if (event.ctrlKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
         undo();
+    } else if (event.key === "Delete") {
+        deleteImages(selectedImages);
+    } else if (event.ctrlKey && event.key.toLowerCase() === "c") {
+        if (selectedImages.size === 1) {
+            copyImageToClipboard([...selectedImages][0]).catch((error) => console.error(error));
+        }
+    } else if (event.ctrlKey && event.key.toLowerCase() === "x") {
+        if (selectedImages.size === 1) {
+            const image = [...selectedImages][0];
+            copyImageToClipboard(image)
+                .then(() => deleteImages([image]))
+                .catch((error) => console.error(error));
+        }
     }
 });
