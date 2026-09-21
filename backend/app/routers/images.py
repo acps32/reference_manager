@@ -5,11 +5,11 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Canvas, Image
+from .elements import element_to_dict
 
 router = APIRouter()
 
@@ -32,21 +32,6 @@ def get_or_create_canvas(db: Session) -> Canvas:
         db.commit()
         db.refresh(canvas)
     return canvas
-
-
-def image_to_dict(image: Image) -> dict:
-    return {
-        "id": image.id,
-        "canvas_id": image.canvas_id,
-        "nom_original": image.nom_original,
-        "chemin_fichier": image.chemin_fichier,
-        "x": image.x,
-        "y": image.y,
-        "width": image.width,
-        "height": image.height,
-        "z_index": image.z_index,
-        "visible": image.visible,
-    }
 
 
 @router.post("/upload")
@@ -89,33 +74,4 @@ def upload_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
     db.commit()
     db.refresh(image)
 
-    return image_to_dict(image)
-
-
-@router.get("/images")
-def list_images(db: Session = Depends(get_db)):
-    images = db.query(Image).all()
-    return [image_to_dict(image) for image in images]
-
-
-class ImageUpdate(BaseModel):
-    x: float | None = None
-    y: float | None = None
-    visible: bool | None = None
-
-
-@router.patch("/images/{image_id}")
-def update_image(image_id: int, update: ImageUpdate, db: Session = Depends(get_db)):
-    image = db.get(Image, image_id)
-    if image is None:
-        raise HTTPException(status_code=404, detail="Image introuvable.")
-
-    # exclude_unset : ne touche que les champs réellement envoyés dans la
-    # requête, pas ceux qui valent juste None par défaut.
-    for field, value in update.model_dump(exclude_unset=True).items():
-        setattr(image, field, value)
-
-    db.commit()
-    db.refresh(image)
-
-    return image_to_dict(image)
+    return element_to_dict(image)

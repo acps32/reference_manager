@@ -1,13 +1,11 @@
-async function fetchImages() {
-    const response = await fetch("http://127.0.0.1:8000/images");
-    if (!response.ok)
-        throw new Error(`Erreur HTTP ${response.status}`)
-    const images = await response.json();
-    return images;
-}
-
-
 const API_URL = "http://127.0.0.1:8000";
+
+async function fetchElements() {
+    const response = await fetch(`${API_URL}/elements`);
+    if (!response.ok)
+        throw new Error(`Erreur HTTP ${response.status}`);
+    return response.json();
+}
 
 async function uploadFile(file) {
     const formData = new FormData();
@@ -16,6 +14,31 @@ async function uploadFile(file) {
     const response = await fetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
+    });
+
+    if (!response.ok)
+        throw new Error(`Erreur HTTP ${response.status}`);
+}
+
+async function createText(contenu, x = 0, y = 0) {
+    const response = await fetch(`${API_URL}/texts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contenu, x, y }),
+    });
+
+    if (!response.ok)
+        throw new Error(`Erreur HTTP ${response.status}`);
+}
+
+// Générique : changes = { x, y } pour un déplacement, { visible } pour
+// supprimer/restaurer. Marche pour n'importe quel type d'élément (voir
+// PATCH /elements/{id} côté backend, qui ne touche que les champs communs).
+async function patchElement(id, changes) {
+    const response = await fetch(`${API_URL}/elements/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changes),
     });
 
     if (!response.ok)
@@ -35,32 +58,30 @@ function loadImage(cheminFichier) {
     });
 }
 
-// Récupère la liste des images (métadonnées) puis charge chaque fichier en parallèle. Retourne les deux infos associées, prêtes pour drawImage().
-async function loadAllImages() {
-    const images = await fetchImages();
+// Récupère tous les éléments (métadonnées) puis, pour les images, charge le
+// fichier en parallèle. Les textes n'ont rien à charger, ils sont prêts direct.
+async function loadAllElements() {
+    const elements = await fetchElements();
 
     return Promise.all(
-        images.map(async (image) => ({
-            id: image.id,
-            element: await loadImage(image.chemin_fichier),
-            x: image.x,
-            y: image.y,
-            width: image.width,
-            height: image.height,
-            visible: image.visible,
-        }))
+        elements.map(async (element) => {
+            const base = {
+                id: element.id,
+                type: element.type,
+                x: element.x,
+                y: element.y,
+                width: element.width,
+                height: element.height,
+                visible: element.visible,
+            };
+
+            if (element.type === "image") {
+                base.image = await loadImage(element.chemin_fichier);
+            } else if (element.type === "texte") {
+                base.contenu = element.contenu;
+            }
+
+            return base;
+        })
     );
-}
-
-// Générique : changes = { x, y } pour un déplacement, { visible } pour
-// supprimer/restaurer (voir main.js). Seuls les champs fournis sont modifiés.
-async function patchImage(id, changes) {
-    const response = await fetch(`${API_URL}/images/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(changes),
-    });
-
-    if (!response.ok)
-        throw new Error(`Erreur HTTP ${response.status}`);
 }

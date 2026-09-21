@@ -8,8 +8,10 @@ let offsetX = 0;
 let offsetY = 0;
 let zoom = 1;
 
-// Rempli par main.js une fois loadAllImages() résolu (voir api.js).
-let loadedImages = [];
+// Rempli par main.js une fois loadAllElements() résolu (voir api.js). Chaque
+// élément a des champs communs (id, type, x, y, width, height, visible) et
+// des champs propres à son type (image / contenu pour texte).
+let loadedElements = [];
 
 const GRID_SIZE = 50; // espacement de la grille, en unités du monde
 
@@ -40,37 +42,102 @@ function worldToScreen(worldX, worldY) {
     };
 }
 
-// Renvoie l'image (loadedImages) dont le rectangle contient ce point monde, ou null si aucune.
-// Parcours en ordre inverse : la dernière du tableau est dessinée en dernier
-// (voir drawImages), donc affichée au-dessus — c'est elle qu'on doit trouver
+// Renvoie l'élément (loadedElements) dont le rectangle contient ce point monde, ou null si aucun.
+// Parcours en ordre inverse : le dernier du tableau est dessiné en dernier
+// (voir drawElements), donc affiché au-dessus — c'est lui qu'on doit trouver
 // en premier en cas de chevauchement.
-function getImageAt(worldX, worldY) {
-    for (let i = loadedImages.length - 1; i >= 0; i--) {
-        const image = loadedImages[i];
-        if (!image.visible) continue; // une image "supprimée" ne doit plus être cliquable
+function getElementAt(worldX, worldY) {
+    for (let i = loadedElements.length - 1; i >= 0; i--) {
+        const element = loadedElements[i];
+        if (!element.visible) continue; // un élément "supprimé" ne doit plus être cliquable
 
         const inside =
-            worldX >= image.x && worldX <= image.x + image.width &&
-            worldY >= image.y && worldY <= image.y + image.height;
-        if (inside) return image;
+            worldX >= element.x && worldX <= element.x + element.width &&
+            worldY >= element.y && worldY <= element.y + element.height;
+        if (inside) return element;
     }
     return null;
 }
 
-// Renvoie toutes les images (loadedImages) dont le rectangle touche le rectangle donné (coordonnées monde, x1/y1 et x2/y2 dans n'importe quel ordre).
-function getImagesInRect(x1, y1, x2, y2) {
+const HANDLE_HIT_RADIUS = 8; // rayon de détection autour du centre d'une poignée, en pixels écran
+
+// Renvoie { element, handle } si (screenX, screenY) tombe sur une poignée de
+// redimensionnement de l'élément sélectionné, ou null. Poignées aux 4 coins
+// seulement (pas de bords) : les proportions sont bloquées, étirer un seul
+// côté n'aurait pas de sens.
+function getResizeHandleAt(screenX, screenY) {
+    if (selectedElements.size !== 1) return null;
+    const element = [...selectedElements][0];
+
+    const topLeft = worldToScreen(element.x, element.y);
+    const bottomRight = worldToScreen(element.x + element.width, element.y + element.height);
+    const corners = {
+        nw: topLeft,
+        ne: { x: bottomRight.x, y: topLeft.y },
+        sw: { x: topLeft.x, y: bottomRight.y },
+        se: bottomRight,
+    };
+
+    for (const handle in corners) {
+        const corner = corners[handle];
+        if (Math.hypot(screenX - corner.x, screenY - corner.y) <= HANDLE_HIT_RADIUS) {
+            return { element, handle };
+        }
+    }
+    return null;
+}
+
+// Bounding box (coordonnées monde) de toute la sélection multiple actuelle.
+function getGroupBoundingBox() {
+    const elements = [...selectedElements];
+    return {
+        minX: Math.min(...elements.map((element) => element.x)),
+        minY: Math.min(...elements.map((element) => element.y)),
+        maxX: Math.max(...elements.map((element) => element.x + element.width)),
+        maxY: Math.max(...elements.map((element) => element.y + element.height)),
+    };
+}
+
+// Comme getResizeHandleAt, mais pour le cadre englobant la sélection
+// multiple (voir drawGroupSelectionFrame) - la marge PADDING fait partie du
+// rectangle cliquable, comme dessiné.
+function getGroupResizeHandleAt(screenX, screenY) {
+    if (selectedElements.size < 2) return null;
+
+    const { minX, minY, maxX, maxY } = getGroupBoundingBox();
+    const topLeft = worldToScreen(minX, minY);
+    const bottomRight = worldToScreen(maxX, maxY);
+
+    const corners = {
+        nw: { x: topLeft.x - GROUP_FRAME_PADDING, y: topLeft.y - GROUP_FRAME_PADDING },
+        ne: { x: bottomRight.x + GROUP_FRAME_PADDING, y: topLeft.y - GROUP_FRAME_PADDING },
+        sw: { x: topLeft.x - GROUP_FRAME_PADDING, y: bottomRight.y + GROUP_FRAME_PADDING },
+        se: { x: bottomRight.x + GROUP_FRAME_PADDING, y: bottomRight.y + GROUP_FRAME_PADDING },
+    };
+
+    for (const handle in corners) {
+        const corner = corners[handle];
+        if (Math.hypot(screenX - corner.x, screenY - corner.y) <= HANDLE_HIT_RADIUS) {
+            return handle;
+        }
+    }
+    return null;
+}
+
+// Renvoie tous les éléments (loadedElements) dont le rectangle touche le rectangle donné (coordonnées monde, x1/y1 et x2/y2 dans n'importe quel ordre).
+function getElementsInRect(x1, y1, x2, y2) {
     const left = Math.min(x1, x2);
     const right = Math.max(x1, x2);
     const top = Math.min(y1, y2);
     const bottom = Math.max(y1, y2);
 
-    return loadedImages.filter((image) => {
-        if (!image.visible) return false;
+    return loadedElements.filter((element) => {
+        if (!element.visible) return false;
         return (
-            image.x < right &&
-            image.x + image.width > left &&
-            image.y < bottom &&
-            image.y + image.height > top
+            element.x < right &&
+            element.x + element.width > left &&
+            element.y < bottom &&
+            element.y + element.height > top
         );
     });
 }
@@ -88,7 +155,7 @@ function drawGrid() {
     const startX = offsetX % step;
     const startY = offsetY % step;
 
-    ctx.strokeStyle = "#ddd";
+    ctx.strokeStyle = "#474141";
     ctx.lineWidth = 1;
     ctx.beginPath();
 
@@ -104,24 +171,55 @@ function drawGrid() {
     ctx.stroke();
 }
 
-function drawImages() {
-    // width/height * zoom : sinon les images gardent toujours la même taille à l'écran, peu importe le niveau de zoom.
-    for (const image of loadedImages) {
-        if (!image.visible) continue; // "supprimée" (voir menu contextuel) : ne s'affiche plus
+function drawElements() {
+    for (const element of loadedElements) {
+        if (!element.visible) continue; // "supprimé" (voir menu contextuel) : ne s'affiche plus
 
-        const screen = worldToScreen(image.x, image.y);
-        const width = image.width * zoom;
-        const height = image.height * zoom;
+        const screen = worldToScreen(element.x, element.y);
+        // width/height * zoom : sinon les éléments gardent toujours la même taille à l'écran, peu importe le niveau de zoom.
+        const width = element.width * zoom;
+        const height = element.height * zoom;
 
-        ctx.drawImage(image.element, screen.x, screen.y, width, height);
+        if (element.type === "image") {
+            ctx.drawImage(element.image, screen.x, screen.y, width, height);
+        } else if (element.type === "texte") {
+            ctx.fillStyle = "white";
+            ctx.font = `${16 * zoom}px sans-serif`;
+            ctx.textBaseline = "top";
+            ctx.fillText(element.contenu, screen.x, screen.y, width);
+        }
 
-        // selectedImages vient de main.js (mis à jour au clic) : même partage de globales entre scripts que loadedImages.
-        if (selectedImages.has(image)) {
-            ctx.strokeStyle = "#86817e";
+        // selectedElements vient de main.js (mis à jour au clic) : même partage de globales entre scripts que loadedElements.
+        if (selectedElements.has(element)) {
+            ctx.strokeStyle = "#b6e2f0";
             ctx.lineWidth = 2;
             ctx.strokeRect(screen.x, screen.y, width, height);
         }
     }
+}
+
+const GROUP_FRAME_PADDING = 12; // marge en pixels écran autour de la bounding box du groupe
+
+// Cadre englobant TOUTE la sélection multiple, en plus du contour individuel
+// de chaque élément (voir drawElements). Purement visuel pour l'instant :
+// les poignées de redimensionnement de groupe viendront dans une étape suivante.
+function drawGroupSelectionFrame() {
+    if (selectedElements.size < 2) return;
+
+    const { minX, minY, maxX, maxY } = getGroupBoundingBox();
+    const topLeft = worldToScreen(minX, minY);
+    const bottomRight = worldToScreen(maxX, maxY);
+
+    const x = topLeft.x - GROUP_FRAME_PADDING;
+    const y = topLeft.y - GROUP_FRAME_PADDING;
+    const width = bottomRight.x - topLeft.x + GROUP_FRAME_PADDING * 2;
+    const height = bottomRight.y - topLeft.y + GROUP_FRAME_PADDING * 2;
+
+    ctx.strokeStyle = "#2684ff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, 8);
+    ctx.stroke();
 }
 
 function drawSelectionBox() {
@@ -144,7 +242,8 @@ function drawSelectionBox() {
 
 function render() {
     drawGrid();
-    drawImages();
+    drawElements();
+    drawGroupSelectionFrame();
     drawSelectionBox();
 }
 
@@ -160,7 +259,7 @@ canvas.addEventListener("drop", async (event) => {
     if (!file) return;
 
     await uploadFile(file);
-    loadedImages = await loadAllImages();
+    loadedElements = await loadAllElements();
     render();
 });
 
@@ -170,7 +269,7 @@ window.addEventListener("paste", async (event) => {
 
         const file = item.getAsFile();
         await uploadFile(file);
-        loadedImages = await loadAllImages();
+        loadedElements = await loadAllElements();
         render();
     }
 });

@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .database import Base, engine
 from . import models
-from .routers import images
+from .routers import elements, images, texts
 
 # Crée les tables (canvas, groupes, elements, images, textes) si elles
 # n'existent pas encore. Ne touche pas aux données existantes sinon.
@@ -25,6 +25,8 @@ app.add_middleware(
 )
 
 app.include_router(images.router)
+app.include_router(texts.router)
+app.include_router(elements.router)
 
 # Chemin absolu (indépendant du dossier de lancement d'uvicorn) : voir
 # routers/images.py pour le même besoin. Actuellement un seul dossier fixe

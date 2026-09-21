@@ -13,9 +13,24 @@
     <input type="file" id="upload-input" hidden>
     <canvas id="canvas"></canvas>
 
-    <ul id="context-menu" class="context-menu hidden">
-        <li data-action="upload">Importer une image</li>
-        <li data-action="delete">Supprimer</li>
-    </ul>
+    <div id="pie-menu" class="pie-menu hidden">
+        <div class="pie-center"></div>
+        <button class="pie-item" data-action="upload">Import image</button>
+        <button class="pie-item" data-action="text">Add text</button>
+        <button class="pie-item" data-action="delete">Delete</button>
+    </div>
+
+    <button id="settings-button" class="icon-button" title="Advanced settings (N)">⋮</button>
+    <div id="settings-panel" class="settings-panel hidden">
+        <label class="settings-option">
+            <input type="checkbox" id="snap-toggle">
+            Snap
+        </label>
+        <div class="settings-option scale-control">
+            <span>Scale</span>
+            <button id="scale-down" class="scale-button">&minus;</button>
+            <button id="scale-up" class="scale-button">+</button>
+        </div>
+    </div>
 </body>
 </html>
