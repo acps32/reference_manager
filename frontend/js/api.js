@@ -77,6 +77,8 @@ async function loadAllElements() {
 
             if (element.type === "image") {
                 base.image = await loadImage(element.chemin_fichier);
+                base.flip_horizontal = element.flip_horizontal;
+                base.flip_vertical = element.flip_vertical;
             } else if (element.type === "texte") {
                 base.contenu = element.contenu;
             }

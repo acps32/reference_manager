@@ -145,11 +145,11 @@ html, body {
     cursor: pointer;
 }
 
-.scale-control {
+.scale-control, .flip-control {
     cursor: default;
 }
 
-.scale-control span {
+.scale-control span, .flip-control span {
     flex: 1;
 }
 

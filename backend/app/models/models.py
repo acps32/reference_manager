@@ -64,6 +64,8 @@ class Image(Element):
     id: Mapped[int] = mapped_column(ForeignKey("elements.id"), primary_key=True)
     nom_original: Mapped[str] = mapped_column()
     chemin_fichier: Mapped[str] = mapped_column(unique=True)
+    flip_horizontal: Mapped[bool] = mapped_column(default=False)
+    flip_vertical: Mapped[bool] = mapped_column(default=False)
 
     __mapper_args__ = {"polymorphic_identity": "image"}
 

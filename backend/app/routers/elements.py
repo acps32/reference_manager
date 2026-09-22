@@ -27,6 +27,8 @@ def element_to_dict(element: Element) -> dict:
     if isinstance(element, Image):
         base["nom_original"] = element.nom_original
         base["chemin_fichier"] = element.chemin_fichier
+        base["flip_horizontal"] = element.flip_horizontal
+        base["flip_vertical"] = element.flip_vertical
     elif isinstance(element, Texte):
         base["contenu"] = element.contenu
     return base
@@ -44,6 +46,8 @@ class ElementUpdate(BaseModel):
     width: float | None = None
     height: float | None = None
     visible: bool | None = None
+    flip_horizontal: bool | None = None
+    flip_vertical: bool | None = None
 
 
 @router.patch("/elements/{element_id}")
@@ -54,7 +58,11 @@ def update_element(element_id: int, update: ElementUpdate, db: Session = Depends
     if element is None:
         raise HTTPException(status_code=404, detail="Élément introuvable.")
 
-    for field, value in update.model_dump(exclude_unset=True).items():
+    changes = update.model_dump(exclude_unset=True)
+    if not isinstance(element, Image) and ({"flip_horizontal", "flip_vertical"} & changes.keys()):
+        raise HTTPException(status_code=400, detail="La symétrie ne s'applique qu'aux images.")
+
+    for field, value in changes.items():
         setattr(element, field, value)
 
     db.commit()

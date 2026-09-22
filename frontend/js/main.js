@@ -219,6 +219,21 @@ function scaleSelection(factor) {
     render();
 }
 
+// axis: "flip_horizontal" ou "flip_vertical". Ne touche qu'aux images de la
+// sélection (les textes n'ont pas de symétrie) - x/y/width/height ne
+// changent pas, seul le booléen bascule (voir drawElements, canvas.js).
+function flipSelection(axis) {
+    const images = [...selectedElements].filter((element) => element.type === "image");
+    if (images.length === 0) return;
+
+    pushUndo(images.map((element) => ({ image: element, previous: { [axis]: element[axis] } })));
+    for (const element of images) {
+        element[axis] = !element[axis];
+        patchElement(element.id, { [axis]: element[axis] }).catch((error) => console.error(error));
+    }
+    render();
+}
+
 // Principe : mousedown ne fait jamais que PRÉVISUALISER un glisser (quel
 // groupe bouge, à quelle position de départ). La sélection elle-même n'est
 // tranchée qu'au mouseup, une fois qu'on sait si un vrai glisser a eu lieu
@@ -625,6 +640,9 @@ const SCALE_STEP = 1.1; // +10% / -10% (l'inverse exact, 1/1.1) par clic
 
 document.getElementById("scale-up").addEventListener("click", () => scaleSelection(SCALE_STEP));
 document.getElementById("scale-down").addEventListener("click", () => scaleSelection(1 / SCALE_STEP));
+
+document.getElementById("flip-horizontal").addEventListener("click", () => flipSelection("flip_horizontal"));
+document.getElementById("flip-vertical").addEventListener("click", () => flipSelection("flip_vertical"));
 
 // ===== Raccourcis clavier =====
 

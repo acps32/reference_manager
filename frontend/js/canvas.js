@@ -181,7 +181,19 @@ function drawElements() {
         const height = element.height * zoom;
 
         if (element.type === "image") {
-            ctx.drawImage(element.image, screen.x, screen.y, width, height);
+            if (element.flip_horizontal || element.flip_vertical) {
+                // Retourne autour du CENTRE de l'image (pas d'un coin) : x/y/width/height
+                // ne bougent pas, donc hit-testing/redimensionnement restent inchangés.
+                const centerX = screen.x + width / 2;
+                const centerY = screen.y + height / 2;
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.scale(element.flip_horizontal ? -1 : 1, element.flip_vertical ? -1 : 1);
+                ctx.drawImage(element.image, -width / 2, -height / 2, width, height);
+                ctx.restore();
+            } else {
+                ctx.drawImage(element.image, screen.x, screen.y, width, height);
+            }
         } else if (element.type === "texte") {
             ctx.fillStyle = "white";
             ctx.font = `${16 * zoom}px sans-serif`;
