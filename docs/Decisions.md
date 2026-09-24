@@ -32,11 +32,26 @@ Trace des choix techniques et de leur raison, pour ne pas avoir à se souvenir "
 
 **Attribut `visible` (booléen) sur les éléments.** À distinguer du chargement par viewport : `visible` est un choix manuel de l'utilisateur (comme un calque caché dans Blender/Photoshop), pas une optimisation automatique liée à la position de la caméra.
 
+## Interface
+
+**Rangement par portée de l'action (24 sept).** Une action sur la sélection va dans le menu contextuel (clic droit) et, pour les plus fréquentes, dans une barre flottante ; un réglage global va dans le panneau ⋮ ; une information passive va dans la barre d'état. Le panneau ⋮ mélangeait auparavant une préférence (magnétisme) et des actions sur la sélection (échelle, symétrie), ce qui rendait l'ensemble illisible.
+
+**Menu radial supprimé (24 sept).** Il avait été construit façon Blender (presser-glisser-relâcher), puis rebranché sur une touche pour laisser le clic droit au menu classique. Retiré ensuite : son apport ne justifiait pas son coût de découvrabilité face à une convention universelle.
+
+**Les fonctionnalités prévues mais non implémentées sont affichées et désactivées**, avec une mention « à venir », plutôt qu'absentes ou faussement fonctionnelles. Le périmètre visé reste lisible sans induire en erreur.
+
+## Texte
+
+**Taille de police stockée explicitement, hauteur du cadre calculée (24 sept).** Avec le retour à la ligne, le nombre de lignes dépend de la police et de la largeur : la hauteur en découle et ne peut donc pas la déterminer. `width` fixe la largeur de retour à la ligne, `font_size` est une colonne sur `Texte`, `height` est recalculée à chaque édition. Redimensionner un texte met la police à l'échelle en même temps que le cadre.
+
+## Contrainte de taille des fichiers
+
+**100 lignes visées par fichier, 150 maximum.** `main.js` avait atteint 692 lignes ; il a été découpé en modules d'une responsabilité chacun. Conséquence à connaître : les scripts étant chargés en `<script defer>` classiques (pas de modules ES), l'ordre des balises dans `index.html` devient significatif — une variable `let` lue avant l'exécution de sa déclaration lève une `ReferenceError`.
+
 ## Hors scope assumé (pour rattraper si le temps le permet)
 
-- Symétrie horizontale/verticale des images
 - Interface de sélection/gestion de plusieurs canevas
 - Chemin de stockage configurable par canevas (actuellement un seul dossier fixe, `backend/storage/`, câblé en dur). Dépend du multi-canevas ci-dessus — à concevoir ensemble à ce moment-là, pas avant. Impliquera de remplacer le `StaticFiles` actuel par une route dynamique (lisant le chemin en base par canevas), avec une vraie réflexion sécurité (empêcher qu'un chemin sorte du dossier autorisé)
-- Interface de création de groupes (le cadre à la Blender) et d'ajout de texte
+- Groupes : **spécifiés en détail mais non implémentés** (modèle du cadre visuel, voir `Backlog.md`). Une première version « groupe atomique » a été codée puis retirée, son comportement ne correspondant pas au modèle voulu
 - Génération de thumbnails / LOD
 - Plugin Obsidian, application bureau

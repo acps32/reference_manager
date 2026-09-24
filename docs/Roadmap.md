@@ -1,56 +1,46 @@
 # Plan de route
 
-Projet démarré le 9 septembre 2026, échéance le 25 septembre 2026 (16 jours calendaires).
+Projet démarré le 9 septembre 2026, échéance le 25 septembre 2026.
 
-```
-9 sept ──── 16 sept ──── 23 sept ── 25 sept
-   │            │            │          │
-  POC        Fondations   Le dur      Marge
-```
+## Jour 0 (9 sept) : preuve de concept — ✅
 
-## Jour 0 (9 sept) : preuve de concept — ✅ fait
+Upload d'une image, sauvegarde disque (copie + renommage UUID), route de service. Objectif : lever le doute technique du formateur avant d'engager le reste.
 
-Upload d'une image, sauvegarde sur disque (copie + renommage UUID), route qui sert le fichier.
+## Fondations (10 → 16 sept) — ✅
 
-Objectif : lever le doute technique du formateur avant de committer sur le reste du projet.
+- ✅ Structure du projet, venv
+- ✅ Modèle SQLAlchemy (`Canvas`, `Element`/`Image`/`Texte`, `Groupe`), héritage à tables jointes
+- ✅ Branchement API, dimensions réelles lues via Pillow
+- ✅ Canevas quadrillé, zoom et pan (mécanique monde/écran)
+- ✅ Import et affichage des images, persistance
 
-## Fondations (10 → 16 sept)
+## Le dur (17 → 23 sept) — partiellement
 
-- ✅ Setup du projet (structure back/front, venv)
-- ✅ Modèle de données SQLAlchemy (`Canvas`, `Element`/`Image`/`Texte`, `Groupe`)
-- ✅ Branchement API du modèle (`backend/app/main.py` + `backend/app/routers/images.py` + `requirements.txt`), dimensions réelles lues via Pillow
-- ✅ Canevas quadrillé avec zoom et pan, sans image, juste la mécanique de coordonnées monde/écran
-- 🔶 Import d'images, affichage simple (toutes chargées d'un coup), persistance en base — prochaine étape immédiate ; nécessite aussi la route de service (`GET` du fichier), jamais écrite jusqu'ici
+- ✅ Sélection multiple (Maj+clic, rectangle), déplacement de groupe
+- ✅ Transformations : redimensionnement individuel et de groupe, mise à l'échelle, symétrie
+- ✅ Annuler / rétablir, suppression réversible, éléments texte
+- 🔲 **Chargement dynamique par viewport côté backend** — non fait
 
-**Ajustement du 14 sept :** la semaine 1 devait s'arrêter le 14, mais le canevas et l'import/affichage n'ont pas démarré (le modèle de données a pris plus de place que prévu — héritage à tables jointes + `Canvas`/`Groupe`). Fondations repoussées de 2 jours (10 → 16 au lieu de 10 → 14), marge réduite d'autant (4 → 2 jours) en fin de planning plutôt que de toucher à la semaine 2, qui reste le vrai risque du projet.
+## 24 → 25 sept : finition et présentation
 
-À la fin de cette phase : un outil fonctionnel, pas encore optimisé.
+Réorientation assumée du 24 septembre : la consigne étant d'avoir un projet **à présenter** et non un produit fini, la priorité est passée à la cohérence de l'outil et à la lisibilité du périmètre, plutôt qu'à la dernière fonctionnalité technique.
 
-## Le dur (17 → 23 sept) : la partie qui compte pour la soutenance
+- ✅ Réorganisation de l'interface par portée (menu contextuel, panneau du canevas, barre d'état, barre flottante)
+- ✅ Texte complet : édition, retour à la ligne, centrage, taille réglable
+- ✅ Panneau d'aide documentant raccourcis, limites connues et périmètre à venir
+- ✅ Découpage de `main.js` (contrainte de 150 lignes par fichier)
+- ✅ Backlog de tickets (`Backlog.md`) et analyse d'optimisation chiffrée (`Optimisations.md`)
 
-- 🔲 Sélection multiple et transformations (translation, échelle) via menu
-- 🔲 Chargement dynamique par viewport côté backend (le point le plus risqué du planning, volontairement le plus de jours dessus)
+## État des fonctionnalités du MVP
 
-## 24 → 25 sept : marge de sécurité
+- [x] Canevas quadrillé avec zoom et pan
+- [x] Import d'images avec coordonnées modifiables
+- [x] Transformations basiques (translation, mise à l'échelle, symétrie)
+- [x] Sélection multiple
+- [ ] **Chargement dynamique des images selon le viewport**
 
-Non affectée à une fonctionnalité précise. Sert à absorber un dérapage sur la phase précédente, tester la montée en charge (10 → 100 → 1000 images), corriger les bugs, préparer la démo et la présentation.
+## Ce qui reste, et pourquoi
 
-## Ordre de développement détaillé (niveau code)
+Le chargement par viewport est le point identifié dès le départ comme le plus risqué, et il reste non implémenté. `Optimisations.md` en donne l'analyse complète : les problèmes chiffrés (une image 4K occupe ~33 Mo en mémoire une fois décodée, indépendamment du poids du fichier), les leviers classés, et l'ordre dans lequel les traiter. Le travail restant est cadré, pas seulement constaté.
 
-1. ✅ Preuve de concept isolée : upload, sauvegarde disque, route de service
-2. ✅ Modèle de données (`Canvas`, `Element`/`Image`/`Texte`, `Groupe`)
-3. ✅ Branchement API (`main.py`, routeur `images.py`) sur ce modèle — équivalent du POC mais avec le vrai schéma
-4. ✅ Canevas : grille, zoom, pan (sans image)
-5. 🔶 Import et affichage simple des images (persistance en base)
-6. 🔲 Sélection multiple et transformations (translation, échelle)
-7. 🔲 Chargement dynamique par viewport (filtrage backend)
-
-## Fonctionnalités du MVP (rappel)
-
-- [ ] Canevas quadrillé avec zoom et pan
-- [ ] Import d'images avec coordonnées modifiables
-- [ ] Transformations basiques via menu (translation, mise à l'échelle)
-- [ ] Sélection multiple
-- [ ] Chargement dynamique des images selon le viewport
-
-Voir `decisions.md` pour le détail et la justification de chaque choix technique.
+Voir `Decisions.md` pour la justification des choix techniques, `Backlog.md` pour le détail des tickets.

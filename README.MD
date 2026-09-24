@@ -22,13 +22,15 @@ This project differentiates itself on three axes:
 
 ## MVP features
 
-- [ ] Zoomable/pannable grid canvas
-- [ ] Image import with editable coordinates (position, scale)
-- [ ] Basic transformations via menu (translation, scaling) — applied as metadata, never on the source file
-- [ ] Multi-selection (with grouped transformation)
-- [ ] Dynamic image loading based on viewport (server-side filtering)
+- [x] Zoomable/pannable grid canvas
+- [x] Image import with editable coordinates (position, scale)
+- [x] Basic transformations (translation, scaling, horizontal/vertical flip) — applied as metadata, never on the source file
+- [x] Multi-selection (shift-click and marquee), with grouped move and resize
+- [ ] **Dynamic image loading based on viewport (server-side filtering)** — the remaining piece
 
-Out of scope for this version: horizontal/vertical flip, Obsidian plugin, visual similarity search, multi-user support.
+Also implemented along the way: text elements (inline editing, word wrapping), undo/redo, reversible delete, snapping, and an in-app help panel documenting shortcuts, known limitations and planned features.
+
+Out of scope for this version: Obsidian plugin, visual similarity search, multi-user support. Groups are fully specified but not implemented — see `docs/Backlog.md`.
 
 ## Architecture
 
@@ -65,9 +67,22 @@ This is a deliberate choice: keeping frontend and backend strictly decoupled mea
 
 ## Documentation
 
-- [`docs/decisions.md`](docs/decisions.md): technical decisions and the reasoning behind each one
-- [`docs/roadmap.md`](docs/roadmap.md): schedule and development order
+- [`docs/Decisions.md`](docs/Decisions.md): technical decisions and the reasoning behind each one
+- [`docs/Roadmap.md`](docs/Roadmap.md): schedule, and what is done versus what remains
+- [`docs/Backlog.md`](docs/Backlog.md): ticket-level backlog — done, planned, and deliberately dropped
+- [`docs/Optimisations.md`](docs/Optimisations.md): scaling analysis (memory, rendering, network) and prioritisation
+- [`docs/Schema.md`](docs/Schema.md): entity-relationship diagram
+
+## Running it
+
+```bash
+source .venv/Scripts/activate     # Git Bash on Windows
+cd backend
+uvicorn app.main:app --reload
+```
+
+Then open `frontend/index.html` in a browser. `backend/reset.py` wipes the database and the image store, for repeatable load tests.
 
 ## Status
 
-In development — project started September 9, 2026, deadline September 25, 2026.
+In development — project started September 9, 2026, deadline September 25, 2026. The canvas, import, transformations and multi-selection are functional; viewport-based loading is analysed and planned but not implemented.
