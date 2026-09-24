@@ -14,6 +14,7 @@ let zoom = 1;
 let loadedElements = [];
 
 const GRID_SIZE = 50; // espacement de la grille, en unités du monde
+let gridVisible = true; // piloté par le panneau du canevas
 
 function resizeCanvas() {
     // canvas.width/height en pixels physiques + setTransform à l'échelle du devicePixelRatio : évite une grille floue sur les écrans haute densité
@@ -148,7 +149,8 @@ function drawGrid() {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height); // à faire dans tous les cas : c'est aussi l'effacement de la frame précédente
+    if (!gridVisible) return;
 
     const step = GRID_SIZE * zoom;
     // Modulo par step : les lignes restent alignées sur la grille du monde quand on pan, au lieu de repartir du coin de l'écran à chaque fois.
@@ -169,6 +171,33 @@ function drawGrid() {
     }
 
     ctx.stroke();
+}
+
+// Texte : lignes découpées à la largeur du cadre (voir text-layout.js), et
+// bloc entier centré dans le cadre - pas chaque ligne indépendamment, sinon
+// un texte de 3 lignes serait décentré verticalement.
+function drawText(element, screen, width, height) {
+    const fontSize = element.font_size * zoom;
+
+    ctx.fillStyle = "white";
+    ctx.font = textFont(fontSize);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const lines = wrapText(ctx, element.contenu, width);
+    const lineHeight = textLineHeight(fontSize);
+    const centerX = screen.x + width / 2;
+    // Départ du bloc : on remonte d'une demi-hauteur totale depuis le centre.
+    const firstLineY = screen.y + height / 2 - (lines.length - 1) * lineHeight / 2;
+
+    lines.forEach((line, index) => {
+        ctx.fillText(line, centerX, firstLineY + index * lineHeight);
+    });
+
+    // textAlign/textBaseline sont des états persistants du contexte : sans
+    // remise à zéro, ils s'appliqueraient à tout ce qui est dessiné ensuite.
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
 }
 
 function drawElements() {
@@ -195,10 +224,7 @@ function drawElements() {
                 ctx.drawImage(element.image, screen.x, screen.y, width, height);
             }
         } else if (element.type === "texte") {
-            ctx.fillStyle = "white";
-            ctx.font = `${16 * zoom}px sans-serif`;
-            ctx.textBaseline = "top";
-            ctx.fillText(element.contenu, screen.x, screen.y, width);
+            drawText(element, screen, width, height);
         }
 
         // selectedElements vient de main.js (mis à jour au clic) : même partage de globales entre scripts que loadedElements.
@@ -209,6 +235,7 @@ function drawElements() {
         }
     }
 }
+
 
 const GROUP_FRAME_PADDING = 12; // marge en pixels écran autour de la bounding box du groupe
 
@@ -257,6 +284,8 @@ function render() {
     drawElements();
     drawGroupSelectionFrame();
     drawSelectionBox();
+    updateStatusBar(); // défini dans status-bar.js, chargé avant le premier render()
+    updateSelectionToolbar(); // idem, selection-toolbar.js
 }
 
 // ===== Import de fichiers (glisser-déposer, coller) =====

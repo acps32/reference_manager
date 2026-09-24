@@ -9,11 +9,12 @@ from .images import get_or_create_canvas
 
 router = APIRouter()
 
-# Taille par défaut à la création, comme le 200x200 utilisé un temps pour
-# les images avant Pillow - ajustable plus tard une fois le redimensionnement
-# disponible (pas de moyen de connaître une "taille naturelle" pour du texte).
+# Largeur par défaut = largeur de retour à la ligne à la création.
+# Hauteur par défaut = une ligne à la taille de police par défaut
+# (16 x 1.3 d'interligne, voir TEXT_LINE_HEIGHT_RATIO dans text-layout.js) :
+# la hauteur suit le contenu, elle est recalculée à chaque édition.
 DEFAULT_WIDTH = 200.0
-DEFAULT_HEIGHT = 50.0
+DEFAULT_HEIGHT = 21.0
 
 
 class TextCreate(BaseModel):

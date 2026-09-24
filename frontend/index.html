@@ -6,36 +6,76 @@
     <title>Reference Manager</title>
     <link rel="stylesheet" href="css/style.css">
     <script defer src="js/api.js"></script>
+    <script defer src="js/text-layout.js"></script>
     <script defer src="js/canvas.js"></script>
+    <script defer src="js/state.js"></script>
+    <script defer src="js/actions.js"></script>
+    <script defer src="js/transform.js"></script>
+    <script defer src="js/pointer.js"></script>
+    <script defer src="js/pointer-commit.js"></script>
+    <script defer src="js/view.js"></script>
+    <script defer src="js/shortcuts.js"></script>
+    <script defer src="js/text-edit.js"></script>
+    <script defer src="js/context-menu.js"></script>
+    <script defer src="js/status-bar.js"></script>
+    <script defer src="js/help.js"></script>
+    <script defer src="js/selection-toolbar.js"></script>
+    <!-- main.js en dernier : il dessine la première frame, tout doit être défini avant -->
     <script defer src="js/main.js"></script>
 </head>
 <body>
     <input type="file" id="upload-input" hidden>
     <canvas id="canvas"></canvas>
+    <textarea id="text-editor" class="text-editor hidden" spellcheck="false"></textarea>
 
-    <div id="pie-menu" class="pie-menu hidden">
-        <div class="pie-center"></div>
-        <button class="pie-item" data-action="upload">Import image</button>
-        <button class="pie-item" data-action="text">Add text</button>
-        <button class="pie-item" data-action="delete">Delete</button>
+    <ul id="context-menu" class="context-menu hidden">
+        <li data-action="edit-text" data-scope="texte">Éditer le texte<span class="shortcut">double-clic</span></li>
+        <li data-action="flip-horizontal" data-scope="image">Symétrie horizontale</li>
+        <li data-action="flip-vertical" data-scope="image">Symétrie verticale</li>
+        <li data-action="scale-up" data-scope="selection">Agrandir<span class="shortcut">Ctrl +</span></li>
+        <li data-action="scale-down" data-scope="selection">Réduire<span class="shortcut">Ctrl −</span></li>
+        <li data-action="delete" data-scope="selection">Supprimer<span class="shortcut">Suppr</span></li>
+        <li data-action="upload" data-scope="canvas">Importer une image</li>
+        <li data-action="text" data-scope="canvas">Ajouter un texte</li>
+        <li data-action="select-all" data-scope="canvas">Tout sélectionner<span class="shortcut">Ctrl A</span></li>
+    </ul>
+
+    <div id="status-bar" class="status-bar">
+        <span id="status-elements">0 élément</span>
+        <span id="status-zoom">100 %</span>
+        <span id="status-selection"></span>
     </div>
 
-    <button id="settings-button" class="icon-button" title="Advanced settings (N)">⋮</button>
+    <button id="help-button" class="icon-button" title="Aide et raccourcis (?)">?</button>
+    <div id="help-panel" class="help-panel hidden"></div>
+    <div id="selection-toolbar" class="selection-toolbar hidden"></div>
+
+    <button id="settings-button" class="icon-button" title="Paramètres du canevas (N)">⋮</button>
     <div id="settings-panel" class="settings-panel hidden">
+        <p class="settings-title">Canevas</p>
+        <button class="settings-action" data-action="import">Importer une image</button>
+        <button class="settings-action" data-action="new-canvas" disabled>Nouveau canevas<span class="badge">à venir</span></button>
+        <button class="settings-action" data-action="switch-canvas" disabled>Changer de canevas<span class="badge">à venir</span></button>
+        <button class="settings-action" data-action="rename-canvas" disabled>Renommer le canevas<span class="badge">à venir</span></button>
+        <button class="settings-action" data-action="storage-folder" disabled>Dossier de stockage<span class="badge">à venir</span></button>
+        <button class="settings-action" data-action="export" disabled>Exporter en image<span class="badge">à venir</span></button>
+
+        <p class="settings-title">Affichage</p>
+        <label class="settings-option">
+            <input type="checkbox" id="grid-toggle" checked>
+            Grille
+        </label>
         <label class="settings-option">
             <input type="checkbox" id="snap-toggle">
-            Snap
+            Magnétisme
         </label>
-        <div class="settings-option scale-control">
-            <span>Scale</span>
-            <button id="scale-down" class="scale-button">&minus;</button>
-            <button id="scale-up" class="scale-button">+</button>
-        </div>
-        <div class="settings-option flip-control">
-            <span>Flip</span>
-            <button id="flip-horizontal" class="scale-button" title="Flip horizontal">⇋</button>
-            <button id="flip-vertical" class="scale-button" title="Flip vertical">⇵</button>
-        </div>
+        <button class="settings-action" data-action="zoom-fit">Ajuster à la vue<span class="shortcut">Maj 1</span></button>
+        <button class="settings-action" data-action="zoom-reset">Zoom 100 %<span class="shortcut">Maj 0</span></button>
+        <button class="settings-action" data-action="minimap" disabled>Minimap<span class="badge">à venir</span></button>
+
+        <p class="settings-title">Performance</p>
+        <button class="settings-action" data-action="viewport-loading" disabled>Chargement par viewport<span class="badge">à venir</span></button>
+        <button class="settings-action" data-action="thumbnails" disabled>Miniatures (LOD)<span class="badge">à venir</span></button>
     </div>
 </body>
 </html>

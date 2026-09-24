@@ -75,5 +75,8 @@ class Texte(Element):
 
     id: Mapped[int] = mapped_column(ForeignKey("elements.id"), primary_key=True)
     contenu: Mapped[str] = mapped_column()
+    # Taille explicite (et non déduite de la hauteur) : avec le retour à la
+    # ligne, c'est la hauteur qui découle du nombre de lignes, pas l'inverse.
+    font_size: Mapped[float] = mapped_column(default=16.0)
 
     __mapper_args__ = {"polymorphic_identity": "texte"}

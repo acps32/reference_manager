@@ -81,6 +81,7 @@ async function loadAllElements() {
                 base.flip_vertical = element.flip_vertical;
             } else if (element.type === "texte") {
                 base.contenu = element.contenu;
+                base.font_size = element.font_size;
             }
 
             return base;

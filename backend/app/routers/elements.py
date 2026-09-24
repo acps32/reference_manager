@@ -31,6 +31,7 @@ def element_to_dict(element: Element) -> dict:
         base["flip_vertical"] = element.flip_vertical
     elif isinstance(element, Texte):
         base["contenu"] = element.contenu
+        base["font_size"] = element.font_size
     return base
 
 
@@ -48,6 +49,8 @@ class ElementUpdate(BaseModel):
     visible: bool | None = None
     flip_horizontal: bool | None = None
     flip_vertical: bool | None = None
+    contenu: str | None = None
+    font_size: float | None = None
 
 
 @router.patch("/elements/{element_id}")
@@ -61,6 +64,8 @@ def update_element(element_id: int, update: ElementUpdate, db: Session = Depends
     changes = update.model_dump(exclude_unset=True)
     if not isinstance(element, Image) and ({"flip_horizontal", "flip_vertical"} & changes.keys()):
         raise HTTPException(status_code=400, detail="La symétrie ne s'applique qu'aux images.")
+    if not isinstance(element, Texte) and ({"contenu", "font_size"} & changes.keys()):
+        raise HTTPException(status_code=400, detail="Contenu et taille de police ne s'appliquent qu'aux textes.")
 
     for field, value in changes.items():
         setattr(element, field, value)
