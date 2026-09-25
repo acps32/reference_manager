@@ -1,0 +1,314 @@
+/* ===== Gabarit de test visuel — isolé de l'application =====
+   Point de départ : copie des tokens et composants réels (style.css), à
+   modifier librement ici. Zéro risque : rien de ce fichier n'est chargé par
+   index.html. Une fois une direction choisie, on la reporte à la main dans
+   style.css - voir Backlog.md, UI-08/UI-09. */
+
+:root {
+    --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-xs: 11px;
+    --font-sm: 13px;
+    --font-md: 14px;
+
+    --ui-bg: #262626;
+    --ui-bg-hover: #333333;
+    --ui-border: #3a3a3a;
+    --ui-text: #e3e3e3;
+    --ui-text-dim: #9a9a9a;
+    --ui-accent: #0e93ff;
+
+    --canvas-bg: rgb(247, 250, 252);
+    --canvas-grid: #d1c6c6;
+    --canvas-text: #ffffff;
+    --canvas-selection: var(--ui-accent);
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+
+    --radius-sm: 2px;
+    --radius-md: 2px;
+    --shadow-panel: 0 1px 8px rgba(139, 134, 134, 0.5);
+    --shadow-float: 0 1px 5px rgba(105, 105, 105, 0.45);
+
+    /* Grille en points : mêmes valeurs que GRID_SIZE/GRID_DOT_RADIUS (canvas.js) */
+    --grid-size: 50px;
+    --grid-dot-radius: 1.5px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: var(--ui-font);
+    color: var(--ui-text);
+}
+
+/* ===== Canevas (statique : pas de zoom/pan, juste le fond) ===== */
+
+.fake-canvas {
+    position: fixed;
+    inset: 0;
+    background-color: var(--canvas-bg);
+}
+
+/* Deux variantes pour comparer à l'œil (voir le bouton en bas à droite) :
+   points (technique identique à canvas.js, figée à zoom = 1) ou lignes fines. */
+.fake-canvas.dots {
+    background-image: radial-gradient(circle, var(--canvas-grid) var(--grid-dot-radius), transparent var(--grid-dot-radius));
+    background-size: var(--grid-size) var(--grid-size);
+}
+
+.fake-canvas.lines {
+    background-image:
+        linear-gradient(to right, var(--canvas-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--canvas-grid) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+}
+
+.grid-toggle {
+    position: fixed;
+    right: 12px;
+    bottom: 32px;
+    z-index: 30;
+    padding: 4px 8px;
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--radius-sm);
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    font-size: var(--font-xs);
+    cursor: pointer;
+}
+
+/* ===== Éléments posés sur le canevas ===== */
+
+.fake-element {
+    position: absolute;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    box-shadow: var(--shadow-float);
+}
+
+.fake-element.selected {
+    outline: 1.5px solid var(--canvas-selection);
+    outline-offset: 1.5px;
+}
+
+/* ===== Icônes des boutons ⋮ / ? / barre flottante ===== */
+
+.icon-button {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--radius-md);
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    background: var(--ui-bg-hover);
+}
+
+#help-button {
+    top: 52px;
+}
+
+/* ===== Panneau du canevas (⋮) ===== */
+
+.settings-panel {
+    position: fixed;
+    top: 12px;
+    right: 52px;
+    z-index: 10;
+    width: 240px;
+    padding: var(--space-3);
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    color: var(--ui-text);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
+}
+
+.settings-title {
+    margin: 10px 2px 4px;
+    color: var(--ui-text-dim);
+    font-size: var(--font-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.settings-title:first-child {
+    margin-top: 0;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 5px 6px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    cursor: pointer;
+}
+
+.settings-action {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 6px;
+    appearance: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    font-size: var(--font-sm);
+    text-align: left;
+    cursor: pointer;
+}
+
+.settings-action:hover:not(:disabled) {
+    background: var(--ui-bg-hover);
+}
+
+.settings-action:disabled {
+    color: var(--ui-text-dim);
+}
+
+.settings-action .shortcut,
+.settings-action .badge {
+    margin-left: auto;
+    padding-left: 12px;
+    color: var(--ui-text-dim);
+    font-size: var(--font-xs);
+}
+
+.settings-action .badge {
+    font-style: italic;
+}
+
+/* ===== Menu contextuel ===== */
+
+.context-menu {
+    position: fixed;
+    z-index: 15;
+    min-width: 200px;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
+    color: var(--ui-text);
+    font-size: var(--font-sm);
+}
+
+.context-menu li {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.context-menu li:hover {
+    background: var(--ui-accent);
+}
+
+.context-menu .shortcut {
+    margin-left: auto;
+    color: var(--ui-text-dim);
+    font-size: var(--font-xs);
+}
+
+.context-menu li:hover .shortcut {
+    color: white;
+}
+
+/* ===== Barre flottante de sélection ===== */
+
+.selection-toolbar {
+    position: absolute;
+    z-index: 12;
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
+}
+
+.toolbar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--ui-text);
+    cursor: pointer;
+}
+
+.toolbar-button:hover {
+    background: var(--ui-accent);
+    color: white;
+}
+
+.toolbar-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ===== Barre d'état ===== */
+
+.status-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    gap: 20px;
+    padding: 5px 12px;
+    background: color-mix(in srgb, var(--canvas-bg) 90%, transparent);
+    border-top: 1px solid var(--ui-border);
+    color: var(--ui-text-dim);
+    font-size: var(--font-xs);
+}
+
+/* ===== Étiquette de repère (juste pour ce gabarit, pas un vrai composant) ===== */
+
+.lab-label {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 30;
+    padding: 4px 8px;
+    background: var(--ui-accent);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    font-weight: 600;
+}

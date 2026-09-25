@@ -7,9 +7,13 @@ async function fetchElements() {
     return response.json();
 }
 
-async function uploadFile(file) {
+// centerX/centerY : point du monde où centrer l'image. Le backend en déduit
+// le coin haut-gauche une fois les dimensions réelles connues.
+async function uploadFile(file, centerX, centerY) {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("center_x", centerX);
+    formData.append("center_y", centerY);
 
     const response = await fetch(`${API_URL}/upload`, {
         method: "POST",

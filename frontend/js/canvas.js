@@ -16,6 +16,27 @@ let loadedElements = [];
 const GRID_SIZE = 50; // espacement de la grille, en unités du monde
 let gridVisible = true; // piloté par le panneau du canevas
 
+// Un <canvas> ne connaît pas le CSS : ses couleurs ne peuvent pas s'écrire en
+// var(--xxx). THEME lit les tokens une fois (getComputedStyle) et les tient
+// à jour dans un objet que drawGrid/drawText/drawElements consultent à chaque
+// frame - permet au mode clair/sombre (voir view.js) de changer les couleurs
+// du canevas depuis la même source que le reste de l'interface.
+const THEME = {};
+
+function refreshThemeFromCSS() {
+    const style = getComputedStyle(document.documentElement);
+    const read = (name) => style.getPropertyValue(name).trim();
+
+    THEME.canvasBg = read("--canvas-bg");
+    THEME.grid = read("--canvas-grid");
+    THEME.text = read("--canvas-text");
+    THEME.selection = read("--canvas-selection");
+    THEME.marqueeStroke = read("--canvas-marquee-stroke");
+    THEME.marqueeFill = read("--canvas-marquee-fill");
+}
+
+refreshThemeFromCSS();
+
 function resizeCanvas() {
     // canvas.width/height en pixels physiques + setTransform à l'échelle du devicePixelRatio : évite une grille floue sur les écrans haute densité
     // (le reste du code dessine ensuite en pixels CSS, comme si de rien n'était).
@@ -157,8 +178,8 @@ function drawGrid() {
     const startX = offsetX % step;
     const startY = offsetY % step;
 
-    ctx.strokeStyle = "#474141";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = THEME.grid;
+    ctx.lineWidth = 0.5; // trait fin : 1 faisait plein pixel écran (donc plus épais que nécessaire vu le faible contraste voulu)
     ctx.beginPath();
 
     for (let x = startX; x < width; x += step) {
@@ -179,7 +200,7 @@ function drawGrid() {
 function drawText(element, screen, width, height) {
     const fontSize = element.font_size * zoom;
 
-    ctx.fillStyle = "white";
+    ctx.fillStyle = THEME.text;
     ctx.font = textFont(fontSize);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -229,8 +250,8 @@ function drawElements() {
 
         // selectedElements vient de main.js (mis à jour au clic) : même partage de globales entre scripts que loadedElements.
         if (selectedElements.has(element)) {
-            ctx.strokeStyle = "#b6e2f0";
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = THEME.selection;
+            ctx.lineWidth = 1.5;
             ctx.strokeRect(screen.x, screen.y, width, height);
         }
     }
@@ -254,7 +275,7 @@ function drawGroupSelectionFrame() {
     const width = bottomRight.x - topLeft.x + GROUP_FRAME_PADDING * 2;
     const height = bottomRight.y - topLeft.y + GROUP_FRAME_PADDING * 2;
 
-    ctx.strokeStyle = "#2684ff";
+    ctx.strokeStyle = THEME.selection;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, 8);
@@ -272,9 +293,9 @@ function drawSelectionBox() {
     const width = lastX - selectStartX;
     const height = lastY - selectStartY;
 
-    ctx.fillStyle = "rgba(38, 132, 255, 0.15)";
+    ctx.fillStyle = THEME.marqueeFill;
     ctx.fillRect(x, y, width, height);
-    ctx.strokeStyle = "#2684ff";
+    ctx.strokeStyle = THEME.marqueeStroke;
     ctx.lineWidth = 1;
     ctx.strokeRect(x, y, width, height);
 }
@@ -299,7 +320,9 @@ canvas.addEventListener("drop", async (event) => {
     const file = event.dataTransfer.files[0];
     if (!file) return;
 
-    await uploadFile(file);
+    // Déposé : à l'endroit du lâcher, c'est ce que l'utilisateur vise.
+    const dropPoint = screenToWorld(event.clientX, event.clientY);
+    await uploadFile(file, dropPoint.x, dropPoint.y);
     loadedElements = await loadAllElements();
     render();
 });
@@ -309,7 +332,8 @@ window.addEventListener("paste", async (event) => {
         if (!item.type.startsWith("image/")) continue;
 
         const file = item.getAsFile();
-        await uploadFile(file);
+        const center = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+        await uploadFile(file, center.x, center.y);
         loadedElements = await loadAllElements();
         render();
     }

@@ -37,7 +37,10 @@ def element_to_dict(element: Element) -> dict:
 
 @router.get("/elements")
 def list_elements(db: Session = Depends(get_db)):
-    elements = db.query(Element).all()
+    # Les éléments supprimés (visible=False) ne sont pas renvoyés : les laisser
+    # passer revenait à les faire télécharger et décoder par le navigateur à
+    # chaque chargement de page, pour ne jamais les afficher.
+    elements = db.query(Element).filter(Element.visible.is_(True)).all()
     return [element_to_dict(element) for element in elements]
 
 

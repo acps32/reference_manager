@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Design Lab — Reference Manager</title>
+    <link rel="stylesheet" href="design-lab.css">
+</head>
+<body>
+    <!-- Repère visuel : ce fichier n'est PAS l'application, juste un gabarit
+         de test. Pas de lien depuis index.html, pas de <script> app. -->
+    <div class="lab-label">Design Lab — gabarit statique, pas l'appli</div>
+
+    <div class="fake-canvas dots" id="fake-canvas">
+        <!-- Positions et tailles en dur : pas de logique, juste de quoi juger
+             un style avec du vrai contenu (des images réellement importées,
+             prises dans backend/storage/images/). -->
+        <img class="fake-element" src="../backend/storage/images/6452733a-01c1-40ae-aa63-869395aac185.png"
+             style="left: 80px; top: 120px; width: 280px; height: 236px;">
+
+        <img class="fake-element selected" src="../backend/storage/images/8aeb90f7-5862-4b43-bd8d-fe084b7a2609.png"
+             style="left: 420px; top: 90px; width: 200px; height: 254px;">
+
+        <img class="fake-element" src="../backend/storage/images/b7a6f1c2-5d12-4e03-96a7-12dc7801555c.png"
+             style="left: 680px; top: 260px; width: 120px; height: 165px;">
+
+        <img class="fake-element" src="../backend/storage/images/0592dda5-8267-4ad7-844c-7fa358db031d.png"
+             style="left: 860px; top: 100px; width: 120px; height: 165px;">
+
+        <img class="fake-element" src="../backend/storage/images/3ce30ae0-0d3f-4e88-8958-4a0c39a6fd61.png"
+             style="left: 200px; top: 420px; width: 150px; height: 206px;">
+
+        <img class="fake-element" src="../backend/storage/images/b1f6aa83-240e-41a1-a557-622f871b260e.png"
+             style="left: 420px; top: 400px; width: 150px; height: 206px;">
+
+        <!-- Barre flottante au-dessus de l'image "selected" -->
+        <div class="selection-toolbar" style="left: 470px; top: 46px;">
+            <button class="toolbar-button" title="Éditer le texte">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3l2 2-7 7-2.5.5.5-2.5z"/></svg>
+            </button>
+            <button class="toolbar-button" title="Symétrie horizontale">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v12" stroke-dasharray="2 2"/><path d="M6 5L2.5 8 6 11z"/><path d="M10 5l3.5 3L10 11z"/></svg>
+            </button>
+            <button class="toolbar-button" title="Symétrie verticale">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h12" stroke-dasharray="2 2"/><path d="M5 6L8 2.5 11 6z"/><path d="M5 10l3 3.5 3-3.5z"/></svg>
+            </button>
+            <button class="toolbar-button" title="Supprimer">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h10M6.5 5V3.5h3V5M5 5l.7 8h4.6L11 5"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Menu contextuel, toujours ouvert ici pour pouvoir le styler directement -->
+    <ul class="context-menu" style="left: 780px; top: 480px;">
+        <li>Symétrie horizontale</li>
+        <li>Symétrie verticale</li>
+        <li>Agrandir<span class="shortcut">Ctrl +</span></li>
+        <li>Réduire<span class="shortcut">Ctrl −</span></li>
+        <li>Supprimer<span class="shortcut">Suppr</span></li>
+    </ul>
+
+    <!-- Panneau du canevas, toujours ouvert -->
+    <button class="icon-button" title="Paramètres du canevas">⋮</button>
+    <div class="settings-panel">
+        <p class="settings-title">Canevas</p>
+        <button class="settings-action">Importer une image</button>
+        <button class="settings-action" disabled>Nouveau canevas<span class="badge">à venir</span></button>
+        <button class="settings-action" disabled>Exporter en image<span class="badge">à venir</span></button>
+
+        <p class="settings-title">Affichage</p>
+        <label class="settings-option">
+            <input type="checkbox" checked>
+            Grille
+        </label>
+        <label class="settings-option">
+            <input type="checkbox">
+            Magnétisme
+        </label>
+        <button class="settings-action">Ajuster à la vue<span class="shortcut">Maj 1</span></button>
+    </div>
+
+    <button class="icon-button" id="help-button" title="Aide et raccourcis">?</button>
+
+    <button class="grid-toggle" onclick="document.getElementById('fake-canvas').classList.toggle('dots'); document.getElementById('fake-canvas').classList.toggle('lines');">Grille : points / lignes</button>
+
+    <div class="status-bar">
+        <span>6 éléments</span>
+        <span>100 %</span>
+        <span>1 sélectionné · 200 × 254</span>
+    </div>
+</body>
+</html>

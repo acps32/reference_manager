@@ -53,7 +53,8 @@ document.getElementById("upload-input").addEventListener("change", async (event)
     const file = event.target.files[0];
     if (!file) return; // l'utilisateur a annulé le sélecteur
 
-    await uploadFile(file);
+    const center = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+    await uploadFile(file, center.x, center.y);
 
     // Réaffiche tout, y compris le nouvel élément (pas de mise à jour incrémentale pour l'instant, on recharge la liste complète).
     loadedElements = await loadAllElements();
@@ -81,6 +82,39 @@ window.addEventListener("mousedown", (event) => {
 }, { capture: true });
 
 settingsButton.addEventListener("click", toggleSettingsPanel);
+
+// ===== Mode clair / sombre =====
+//
+// Seul le canevas change de couleurs entre les deux modes (voir style.css,
+// [data-theme="dark"]) ; le chrome (panneaux, menus) reste constant - c'est
+// la direction retenue le 25 sept (voir Decisions.md). refreshThemeFromCSS()
+// et render() suffisent à répercuter le changement : THEME (canvas.js) est
+// justement fait pour être relu à la demande.
+
+const darkModeToggle = document.getElementById("dark-mode-toggle");
+
+function applyDarkMode(dark, { skipRender = false } = {}) {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    darkModeToggle.checked = dark;
+    refreshThemeFromCSS();
+    if (!skipRender) render();
+}
+
+// Au premier chargement : le choix déjà fait par l'utilisateur prime, sinon
+// on suit la préférence système. skipRender ici : render() appelle
+// updateStatusBar()/updateSelectionToolbar(), définies dans des fichiers
+// chargés APRÈS celui-ci - le premier vrai rendu revient à main.js
+// (chargé en dernier), une fois que tout existe.
+const storedTheme = localStorage.getItem("theme");
+applyDarkMode(
+    storedTheme ? storedTheme === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches,
+    { skipRender: true }
+);
+
+darkModeToggle.addEventListener("change", (event) => {
+    localStorage.setItem("theme", event.target.checked ? "dark" : "light");
+    applyDarkMode(event.target.checked);
+});
 
 let snapEnabled = false; // réglage permanent (voir le panneau), désactivé par défaut ; Alt reste une dérogation ponctuelle par-dessus
 

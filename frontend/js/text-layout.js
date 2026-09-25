@@ -5,9 +5,10 @@
 // dans la largeur du cadre. Isolé ici parce que c'est la seule logique
 // vraiment calculatoire du dessin, et pour ne pas allonger canvas.js.
 
-// Pile système plutôt qu'une police distante : le frontend s'ouvre en
-// file://, une webfont serait bloquée ou lente. Miroir de --ui-font (CSS).
-const TEXT_FONT_STACK = '"Segoe UI", system-ui, -apple-system, sans-serif';
+// Lit --ui-font (style.css) plutôt qu'une pile dupliquée ici : un changement
+// de police dans le thème doit aussi s'appliquer au texte dessiné sur le
+// canevas, pas seulement à l'interface autour.
+const TEXT_FONT_STACK = getComputedStyle(document.documentElement).getPropertyValue("--ui-font").trim();
 const TEXT_LINE_HEIGHT_RATIO = 1.3; // interligne, proportion de la taille de police
 
 function textFont(fontSize) {

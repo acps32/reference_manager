@@ -51,23 +51,6 @@ const HELP_SECTIONS = [
         ],
         muted: true,
     },
-    {
-        title: "À venir",
-        rows: [
-            ["Groupes", "Cadre visuel contenant des éléments, spécifié"],
-            ["Dupliquer", "Copie d'un élément sans recopier le fichier"],
-            ["Avant-plan / arrière-plan", "Ordre de profondeur persistant"],
-            ["Aligner et répartir", "Mise en ordre d'une sélection"],
-            ["Rotation, verrouillage, opacité", "Transformations complémentaires"],
-            ["Niveaux de gris", "Vérifier les valeurs d'une référence"],
-            ["Pipette à couleur", "Échantillonner une couleur sur une image"],
-            ["Minimap", "Se repérer sur un grand canevas"],
-            ["Multi-canevas, export", "Plusieurs planches, export en image"],
-            ["Chargement par viewport", "Ne charger que les éléments visibles"],
-            ["Miniatures (LOD)", "Servir une résolution adaptée au zoom"],
-        ],
-        muted: true,
-    },
 ];
 
 const helpPanel = document.getElementById("help-panel");

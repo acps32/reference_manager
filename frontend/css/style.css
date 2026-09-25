@@ -1,11 +1,62 @@
+/* Jeu de tokens : toute valeur de couleur/rayon/ombre/police utilisée plus
+   d'une fois est un token, ici, jamais répétée en dur ailleurs (voir
+   Decisions.md, "Système de design").
+   Direction retenue le 25 sept après exploration dans design-lab.html :
+   chrome sombre constant (menus, panneaux), canevas qui bascule clair/sombre
+   (voir [data-theme="dark"] plus bas) - un panneau flottant sombre reste
+   lisible sur les deux fonds sans bordure/ombre appuyée, c'est la raison du
+   choix, pas seulement l'esthétique. */
 :root {
+    /* Typo */
     --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-xs: 11px;
+    --font-sm: 13px;
+    --font-md: 14px;
+
+    /* Couleurs d'interface (panneaux, menus) : constantes, ne suivent PAS le
+       mode clair/sombre - c'est le canevas seul qui bascule. */
     --ui-bg: #262626;
     --ui-bg-hover: #333333;
     --ui-border: #3a3a3a;
     --ui-text: #e3e3e3;
     --ui-text-dim: #9a9a9a;
-    --ui-accent: #2684ff;
+    --ui-accent: #0e93ff;
+
+    /* Couleurs du canevas (mode clair, par défaut) : distinctes de
+       l'interface, lues par canvas.js via getComputedStyle puisqu'un
+       <canvas> ne connaît pas le CSS - voir THEME et refreshThemeFromCSS(). */
+    --canvas-bg: rgb(247, 250, 252);
+    --canvas-grid: #c4b9b9; /* contraste ~1,8:1 - une ligne continue se voit bien plus qu'un point isolé à contraste égal, donc pas besoin du seuil 3:1 visé pour les points */
+    --canvas-text: #1a1a1a;
+    --canvas-selection: var(--ui-accent);
+    --canvas-marquee-stroke: var(--ui-accent);
+    --canvas-marquee-fill: rgba(14, 147, 255, 0.15);
+
+    /* Espacement (échelle x4) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+
+    /* Rayons et ombres : constants eux aussi, sauf l'ombre qui doit rester
+       lisible sur le canevas clair - donc surchargée en mode sombre plus bas. */
+    --radius-sm: 2px;
+    --radius-md: 2px;
+    --shadow-panel: 0 1px 8px rgba(139, 134, 134, 0.5);
+    --shadow-float: 0 1px 5px rgba(105, 105, 105, 0.45);
+}
+
+/* Mode sombre : uniquement les tokens propres au canevas et l'ombre qui en
+   dépend visuellement. Le chrome (panneaux/menus) ne change pas - c'est la
+   direction retenue, voir Decisions.md. */
+:root[data-theme="dark"] {
+    --canvas-bg: #191a1b;
+    --canvas-grid: #474141;
+    --canvas-text: #ffffff;
+    --canvas-marquee-fill: rgba(14, 147, 255, 0.2);
+    --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-float: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -22,12 +73,12 @@ html, body {
 
 #canvas {
     /* Un <canvas> est "inline" par défaut : ça laisse quelques px d'espace
-       sous l'élément (réservés pour les descentes de lettres, comme du texte). */
+    sous l'élément (réservés pour les descentes de lettres, comme du texte). */
     display: block;
     width: 100vw;
     height: 100vh;
     cursor: grab;
-    background: #191a1b;
+    background: var(--canvas-bg);
 }
 
 #canvas:active {
@@ -49,7 +100,7 @@ html, body {
     width: 32px;
     height: 32px;
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: var(--ui-bg);
     color: var(--ui-text);
     font-size: 18px;
@@ -71,15 +122,15 @@ html, body {
     background: var(--ui-bg);
     border: 1px solid var(--ui-border);
     color: var(--ui-text);
-    border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
     font-family: var(--ui-font);
 }
 
 .settings-title {
     margin: 10px 2px 4px;
     color: var(--ui-text-dim);
-    font-size: 11px;
+    font-size: var(--font-xs);
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -93,8 +144,8 @@ html, body {
     align-items: center;
     gap: 8px;
     padding: 5px 6px;
-    border-radius: 4px;
-    font-size: 13px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
     cursor: pointer;
 }
 
@@ -102,8 +153,8 @@ html, body {
     background: var(--ui-bg-hover);
 }
 
-/* Entrées d'action du panneau : même gabarit que les cases à cocher, pour que
-   la colonne se lise comme une seule liste. */
+    /* Entrées d'action du panneau : même gabarit que les cases à cocher, pour que
+    la colonne se lise comme une seule liste. */
 .settings-action {
     display: flex;
     align-items: center;
@@ -111,11 +162,11 @@ html, body {
     padding: 5px 6px;
     appearance: none;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: none;
     color: var(--ui-text);
     font-family: var(--ui-font);
-    font-size: 13px;
+    font-size: var(--font-sm);
     text-align: left;
     cursor: pointer;
 }
@@ -124,8 +175,8 @@ html, body {
     background: var(--ui-bg-hover);
 }
 
-/* Fonctionnalité conçue mais pas encore implémentée : volontairement visible
-   et inactive, plutôt qu'absente ou faussement fonctionnelle. */
+    /* Fonctionnalité conçue mais pas encore implémentée : volontairement visible
+    et inactive, plutôt qu'absente ou faussement fonctionnelle. */
 .settings-action:disabled {
     color: var(--ui-text-dim);
     cursor: default;
@@ -136,7 +187,7 @@ html, body {
     margin-left: auto;
     padding-left: 12px;
     color: var(--ui-text-dim);
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .settings-action .badge {
@@ -150,8 +201,8 @@ html, body {
     cursor: pointer;
 }
 
-/* Menu contextuel classique (clic droit) : liste verticale conventionnelle,
-   par opposition au menu radial qui est passé sur un raccourci clavier. */
+    /* Menu contextuel classique (clic droit) : liste verticale conventionnelle,
+    par opposition au menu radial qui est passé sur un raccourci clavier. */
 
 .context-menu {
     position: fixed;
@@ -161,11 +212,11 @@ html, body {
     list-style: none;
     background: var(--ui-bg);
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
     color: var(--ui-text);
     font-family: var(--ui-font);
-    font-size: 13px;
+    font-size: var(--font-sm);
 }
 
 .context-menu li {
@@ -187,24 +238,23 @@ html, body {
 .context-menu .shortcut {
     margin-left: auto;
     color: var(--ui-text-dim);
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .context-menu li:hover .shortcut {
     color: white;
 }
 
-/* Saisie de texte : un <input> HTML posé au-dessus du canvas, qui lui ne
-   sait pas recevoir de frappe clavier. Fond opaque pour masquer le texte
-   dessiné en dessous pendant l'édition. */
+    /* Saisie de texte : un <input> HTML posé au-dessus du canvas, qui lui ne sait pas recevoir 
+    de frappe clavier. Fond opaque pour masquer le texte dessiné en dessous pendant l'édition. */
 
 .text-editor {
     position: fixed;
     z-index: 20;
     padding: 0;
     border: 1px solid var(--ui-accent);
-    background: #191a1b;
-    color: white;
+    background: var(--canvas-bg);
+    color: var(--canvas-text);
     line-height: 1.3; /* même interligne que TEXT_LINE_HEIGHT_RATIO (text-layout.js) */
     text-align: center;
     outline: none;
@@ -212,9 +262,8 @@ html, body {
     resize: none;
 }
 
-/* Barre d'état : information seule, jamais d'action - d'où l'absence de
-   survol cliquable et le pointer-events: none (elle ne doit pas intercepter
-   un clic destiné au canevas qui passe dessous). */
+    /* Barre d'état : information seule, jamais d'action - d'où l'absence de survol cliquable et 
+    le pointer-events: none (elle ne doit pas intercepter un clic destiné au canevas qui passe dessous). */
 .status-bar {
     position: fixed;
     left: 0;
@@ -224,23 +273,22 @@ html, body {
     display: flex;
     gap: 20px;
     padding: 5px 12px;
-    background: rgba(25, 26, 27, 0.9);
+    background: color-mix(in srgb, var(--canvas-bg) 90%, transparent);
     border-top: 1px solid var(--ui-border);
     color: var(--ui-text-dim);
     font-family: var(--ui-font);
-    font-size: 11px;
+    font-size: var(--font-xs);
     pointer-events: none;
 }
 
-/* Le bouton d'aide se place SOUS le bouton ⋮ (même gabarit, voir .icon-button).
-   Les deux panneaux s'ouvrent à gauche de cette colonne de boutons, pour ne
-   pas la recouvrir. */
+    /* Le bouton d'aide se place SOUS le bouton ⋮ (même gabarit, voir .icon-button).
+    Les deux panneaux s'ouvrent à gauche de cette colonne de boutons, pour ne pas la recouvrir. */
 #help-button {
     top: 52px;
 }
 
-/* Panneau d'aide : centré, hauteur bornée et défilant, car son contenu
-   documente aussi le périmètre à venir et dépasse l'écran. */
+    /* Panneau d'aide : centré, hauteur bornée et défilant, car son contenu 
+    documente aussi le périmètre à venir et dépasse l'écran. */
 .help-panel {
     position: fixed;
     top: 52px;
@@ -252,17 +300,17 @@ html, body {
     overflow-y: auto;
     background: var(--ui-bg);
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
     color: var(--ui-text);
     font-family: var(--ui-font);
-    font-size: 13px;
+    font-size: var(--font-sm);
 }
 
 .help-title {
     margin: 16px 0 6px;
     color: var(--ui-accent);
-    font-size: 11px;
+    font-size: var(--font-xs);
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -271,8 +319,8 @@ html, body {
     margin-top: 0;
 }
 
-/* Les sections documentant ce qui n'est pas disponible sont grisées : même
-   information, hiérarchie visuelle différente. */
+    /* Les sections documentant ce qui n'est pas disponible sont grisées : même
+    information, hiérarchie visuelle différente. */
 .help-title-muted {
     color: var(--ui-text-dim);
 }
@@ -288,8 +336,8 @@ html, body {
     font-size: 12px;
 }
 
-/* Barre flottante suivant la sélection : positionnée en JS à chaque frame
-   (voir selection-toolbar.js), d'où l'absence de coordonnées ici. */
+    /* Barre flottante suivant la sélection : positionnée en JS à chaque frame
+    (voir selection-toolbar.js), d'où l'absence de coordonnées ici. */
 .selection-toolbar {
     position: fixed;
     z-index: 12;
@@ -298,8 +346,8 @@ html, body {
     padding: 3px;
     background: var(--ui-bg);
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
 }
 
 .toolbar-button {
@@ -311,14 +359,13 @@ html, body {
     padding: 0;
     appearance: none;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: none;
     color: var(--ui-text);
     cursor: pointer;
 }
 
-/* .selection-toolbar et .toolbar-button imposent display:flex et sont
-   déclarées APRÈS .hidden : à spécificité égale, la dernière règle gagne, donc
+    /* .selection-toolbar et .toolbar-button imposent display:flex et sont déclarées APRÈS .hidden : à spécificité égale, la dernière règle gagne, donc
    .hidden seule resterait sans effet sur elles. */
 .selection-toolbar.hidden,
 .toolbar-button.hidden {
@@ -334,3 +381,4 @@ html, body {
     width: 16px;
     height: 16px;
 }
+

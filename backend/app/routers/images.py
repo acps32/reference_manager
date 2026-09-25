@@ -2,13 +2,13 @@ import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Canvas, Image
+from ..models import Canvas, Element, Image
 from .elements import element_to_dict
 
 router = APIRouter()
@@ -34,8 +34,34 @@ def get_or_create_canvas(db: Session) -> Canvas:
     return canvas
 
 
+# Décalage appliqué quand l'emplacement visé est déjà occupé, pour éviter que
+# des imports successifs ne s'empilent exactement au même endroit.
+CASCADE_STEP = 24.0
+OCCUPIED_TOLERANCE = 1.0
+
+
+def free_position(db: Session, canvas_id: int, x: float, y: float) -> tuple[float, float]:
+    """Décale en diagonale tant qu'un élément visible commence déjà à cet endroit."""
+    occupied = {
+        (round(element.x), round(element.y))
+        for element in db.query(Element).filter(Element.canvas_id == canvas_id, Element.visible.is_(True))
+    }
+    while (round(x), round(y)) in occupied:
+        x += CASCADE_STEP
+        y += CASCADE_STEP
+    return x, y
+
+
 @router.post("/upload")
-def upload_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
+def upload_image(
+    file: UploadFile = File(...),
+    # Centre visé, en coordonnées monde. Le frontend envoie le centre et non le
+    # coin haut-gauche : les dimensions réelles de l'image ne sont connues
+    # qu'ici, une fois le fichier lu par Pillow.
+    center_x: float = Form(0.0),
+    center_y: float = Form(0.0),
+    db: Session = Depends(get_db),
+):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Fichier sans nom.")
 
@@ -57,14 +83,16 @@ def upload_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
         destination.unlink()
         raise HTTPException(status_code=400, detail="Fichier image invalide ou non supporté.")
 
+    x, y = free_position(db, canvas.id, center_x - width / 2, center_y - height / 2)
+
     image = Image(
         canvas_id=canvas.id,
         nom_original=file.filename,
         # .as_posix() force des "/" même sur Windows : chemin_fichier doit
         # rester utilisable tel quel dans une URL (voir frontend/js/api.js).
         chemin_fichier=destination.relative_to(BASE_DIR).as_posix(),
-        x=0.0,
-        y=0.0,
+        x=x,
+        y=y,
         width=float(width),
         height=float(height),
         z_index=0,
