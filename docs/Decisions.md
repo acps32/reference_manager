@@ -32,6 +32,20 @@ Trace des choix techniques et de leur raison, pour ne pas avoir à se souvenir "
 
 **Attribut `visible` (booléen) sur les éléments.** À distinguer du chargement par viewport : `visible` est un choix manuel de l'utilisateur (comme un calque caché dans Blender/Photoshop), pas une optimisation automatique liée à la position de la caméra.
 
+## Système de design (24 sept)
+
+**Toute valeur de couleur/rayon/ombre/taille de police utilisée plus d'une fois est un token CSS**, dans `:root` (`style.css`). Avant cette consolidation, six couleurs étaient codées en dur dans `canvas.js` (grille, texte, contour de sélection, rectangle de sélection) — hors de portée de tout changement de thème, et une d'entre elles (`#b6e2f0`) ne correspondait déjà plus à la couleur d'accent réelle (`#2684ff`).
+
+Un `<canvas>` ne sait pas lire de CSS : `THEME` (`canvas.js`) lit les tokens (`getComputedStyle`) et les tient à jour dans un objet relu à chaque frame, pour que les couleurs du canevas suivent le même thème que le reste de l'interface.
+
+**Exploration faite dans `frontend/design-lab.html`/`design-lab.css`, gabarit isolé jamais lié depuis `index.html`** — image réelles tirées de `storage/images/`, tous les panneaux posés en dur, sans dépendre de l'appli qui tourne. La comparaison définitive (points vs lignes pour la grille) s'y est faite avec un bouton pour basculer entre les deux sur le même contenu, plutôt qu'en discussion.
+
+**Direction retenue le 25 sept** : chrome sombre constant (panneaux, menus — ne change jamais), canevas qui bascule clair/sombre. Choisi parce qu'un panneau flottant sombre reste lisible sur les deux fonds sans bordure/ombre appuyée, alors que l'inverse (panneaux clairs) aurait demandé plus d'artifice pour se détacher du canevas sombre. Accent plus électrique (`#0e93ff`), rayons uniformisés à 2px (plus tranchant), contour de sélection affiné (2px → 1,5px). Grille en points testée puis écartée : lignes fines retenues à la place (25 sept), comparées dans le gabarit plutôt que décidées à l'aveugle.
+
+**Mécanisme du mode clair/sombre** : un attribut `data-theme="dark"` sur `<html>`, posé par `view.js` (`applyDarkMode()`). Seuls les tokens `--canvas-*` et les ombres sont surchargés dans `:root[data-theme="dark"]` — le chrome ne bouge pas. Préférence système (`prefers-color-scheme`) comme valeur par défaut, écrasée et mémorisée dans `localStorage` dès que l'utilisateur touche la case à cocher. Piège rencontré en l'écrivant : l'appel initial ne doit **pas** déclencher `render()` — `view.js` charge avant `status-bar.js`/`selection-toolbar.js`, dont `render()` dépend ; un appel trop tôt aurait été le même genre de `ReferenceError` que le piège `isSelecting` déjà rencontré. Le premier rendu reste celui de `main.js`, chargé en dernier.
+
+**`theme.js` (outil temporaire de test à 4 préréglages) est retiré** maintenant qu'une direction est choisie — ce qui reste définitivement : le système de tokens dans `style.css`, et le gabarit isolé pour la prochaine fois qu'une exploration visuelle sera utile.
+
 ## Interface
 
 **Rangement par portée de l'action (24 sept).** Une action sur la sélection va dans le menu contextuel (clic droit) et, pour les plus fréquentes, dans une barre flottante ; un réglage global va dans le panneau ⋮ ; une information passive va dans la barre d'état. Le panneau ⋮ mélangeait auparavant une préférence (magnétisme) et des actions sur la sélection (échelle, symétrie), ce qui rendait l'ensemble illisible.

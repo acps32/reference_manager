@@ -1,6 +1,6 @@
 # Plan de route
 
-Projet démarré le 9 septembre 2026, échéance le 25 septembre 2026.
+Projet démarré le 9 septembre 2026. **Soutenance le lundi 28 septembre à midi.**
 
 ## Jour 0 (9 sept) : preuve de concept — ✅
 
@@ -21,7 +21,9 @@ Upload d'une image, sauvegarde disque (copie + renommage UUID), route de service
 - ✅ Annuler / rétablir, suppression réversible, éléments texte
 - 🔲 **Chargement dynamique par viewport côté backend** — non fait
 
-## 24 → 25 sept : finition et présentation
+## 24 → 26 sept : finition, puis gel
+
+**Gel du code le samedi 26 au soir**, le dimanche étant réservé à la répétition. Modifier la veille d'une soutenance est le meilleur moyen de se présenter avec une régression non détectée.
 
 Réorientation assumée du 24 septembre : la consigne étant d'avoir un projet **à présenter** et non un produit fini, la priorité est passée à la cohérence de l'outil et à la lisibilité du périmètre, plutôt qu'à la dernière fonctionnalité technique.
 
@@ -30,6 +32,15 @@ Réorientation assumée du 24 septembre : la consigne étant d'avoir un projet *
 - ✅ Panneau d'aide documentant raccourcis, limites connues et périmètre à venir
 - ✅ Découpage de `main.js` (contrainte de 150 lignes par fichier)
 - ✅ Backlog de tickets (`Backlog.md`) et analyse d'optimisation chiffrée (`Optimisations.md`)
+
+## Plan des derniers jours
+
+| Jour | Objectif |
+|---|---|
+| Jeudi 24 | Import au centre de la vue, filtrage des éléments supprimés, script de seed, filtrage viewport côté backend |
+| Vendredi 25 | Viewport côté frontend : cache par identifiant, throttling des requêtes, déchargement hors champ |
+| Samedi 26 | Montée en charge mesurée (10 → 100 → 1000 images), correction de bugs, **gel le soir** |
+| Dimanche 27 | Répétition de la présentation, aucun code |
 
 ## État des fonctionnalités du MVP
 

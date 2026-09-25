@@ -49,12 +49,15 @@ Contrainte de ce découpage : les scripts sont chargés en `<script defer>` clas
 | UI-04 | Barre d'état passive : nb d'éléments, zoom %, taille de la sélection | front | fait |
 | UI-05 | Barre flottante d'icônes suivant la sélection (éditer le texte, symétries, supprimer) | front | fait |
 | UI-06 | Retour visuel en cas d'échec réseau (aujourd'hui `console.error` uniquement) | front | à faire |
-| UI-08 | Passe de design visuel sur l'ensemble de l'interface | front | à faire |
+| UI-08 | Choisir un style (exploré dans `design-lab.html`) et l'appliquer dans `style.css` | front | fait |
+| UI-09 | Retirer `theme.js` et son sélecteur une fois `UI-08` fait — outil de test, pas une fonctionnalité de l'appli | front | fait |
+| UI-10 | Retirer `frontend/design-lab.html`/`design-lab.css` une fois `UI-08` fait — gabarit isolé, jamais lié depuis `index.html` | front | à discuter |
+| UI-11 | Mode clair / sombre : bascule dans le panneau du canevas, persistée (`localStorage`), respecte `prefers-color-scheme` au premier chargement | front | fait |
 | UI-07 | Panneau d'aide "?" listant raccourcis et fonctionnalités, avec marquage explicite du non implémenté | front | fait |
 
 Raccourcis ajoutés avec cette réorganisation : **Ctrl +** / **Ctrl −** mettent la sélection à l'échelle (l'équivalent des anciens boutons du panneau ⋮), **Maj+0** ramène le zoom à 100 %.
 
-La section « à venir » du panneau d'aide (`UI-07`) reflète ce backlog : les deux doivent être mis à jour ensemble. Les entrées non encore implémentées du panneau ⋮ sont, elles, **affichées et désactivées**, avec une mention « à venir » : le périmètre visé reste lisible sans faire croire à une fonctionnalité disponible. Chacune correspond à un ticket ci-dessous (`NAV-04` à `NAV-07`, viewport et miniatures dans `Optimisations.md`).
+Le panneau d'aide (`UI-07`) liste raccourcis et limites connues ; la section « à venir » qui listait aussi les fonctionnalités prévues a été retirée (25 sept, choix volontaire) — ce backlog reste la seule source pour ça. Les entrées non encore implémentées du panneau ⋮ restent, elles, **affichées et désactivées**, avec une mention « à venir » : le périmètre visé y reste lisible sans faire croire à une fonctionnalité disponible. Chacune correspond à un ticket ci-dessous (`NAV-04` à `NAV-07`, viewport et miniatures dans `Optimisations.md`).
 
 Principe de rangement retenu : **par portée de l'action**. Sur la sélection → menu contextuel, doublé par la barre flottante pour les gestes les plus fréquents. Global/préférence → panneau ⋮. Information passive → barre d'état. Outil modal → raccourci + indicateur dans la barre d'état.
 
@@ -109,7 +112,7 @@ Le modèle retenu est celui du **cadre visuel** (façon Miro), pas du groupe ato
 | ELM-08 | Opacité | front + back | à faire |
 | ELM-09 | Rangement automatique sans chevauchement | front | assumé non fait |
 | ELM-10 | Inversion des valeurs | front | assumé non fait |
-| ELM-11 | Importer au **centre de la vue** plutôt qu'à l'origine du monde (`x=0, y=0` en dur dans `images.py`), avec décalage si un élément occupe déjà l'emplacement. Concerne l'import par fichier comme le coller | front + back | à faire |
+| ELM-11 | Importer au **centre de la vue** (au point du lâcher pour un glisser-déposer), avec décalage en cascade si l'emplacement est déjà occupé | front + back | fait |
 
 Note ELM-01 : `chemin_fichier` est déclaré `unique=True` dans `models.py` ; cette contrainte doit être levée pour que deux éléments partagent le même fichier.
 
@@ -130,7 +133,7 @@ Note ELM-01 : `chemin_fichier` est déclaré `unique=True` dans `models.py` ; ce
 | ID | Titre | Portée | État |
 |---|---|---|---|
 | BUG-01 | Ctrl+C / Ctrl+X inopérants : l'API Clipboard exige un contexte sécurisé, or le frontend est ouvert en `file://` | front | bloqué |
-| BUG-02 | Les éléments supprimés (`visible: false`) sont quand même renvoyés puis téléchargés et décodés | front + back | à faire |
+| BUG-02 | Les éléments supprimés (`visible: false`) sont quand même renvoyés puis téléchargés et décodés | back | fait |
 | BUG-03 | `z_index` existe en base mais n'est ni lu ni écrit (couvert par ELM-02) | front + back | à faire |
 
 Note BUG-01 : se résout en servant le frontend en `http://` plutôt qu'en fichier local. Le coller (Ctrl+V) fonctionne, lui, via l'événement `paste`.
