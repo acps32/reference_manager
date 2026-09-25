@@ -63,6 +63,18 @@ Principe de rangement retenu : **par portée de l'action**. Sur la sélection �
 
 Les boutons ⋮ et ? forment une colonne en haut à droite ; leurs panneaux s'ouvrent à gauche de cette colonne pour ne pas la recouvrir.
 
+## Performance (viewport)
+
+| ID | Titre | Portée | État |
+|---|---|---|---|
+| PERF-01 | Script de seed (`backend/seed.py`) pour générer N images de test en grille | back | fait |
+| PERF-02 | `GET /elements` filtré par viewport (x/y/width/height), facultatif et rétrocompatible | back | fait |
+| PERF-03 | Le frontend envoie son viewport réel à `GET /elements` au lieu de tout demander | front | à faire |
+| PERF-04 | Debounce des requêtes viewport pendant un pan/zoom continu | front | à faire |
+| PERF-05 | Décharger les images qui sortent du viewport (libérer la mémoire, pas seulement arrêter de les demander) | front | à faire |
+
+Détail et chiffres mesurés : voir `Optimisations.md`.
+
 ## Éléments : texte
 
 | ID | Titre | Portée | État |

@@ -42,14 +42,15 @@ Analyse du 22 septembre, suite à la question "qu'est-ce qui se passe si je cont
 
 ## 7. Le point bloquant pour tout le reste
 
-Il manque un **script de seed** (symétrique de `backend/reset.py`) pour générer N images de test. Sans lui, impossible de tester à 1000 images, donc impossible de mesurer quoi que ce soit avant/après une optimisation. Prérequis à toute mesure sérieuse.
+**Fait (25 sept)** : `backend/seed.py`, symétrique de `reset.py` — génère N images de test en grille (couleur + numéro visible), écriture directe en base (pas de N requêtes HTTP). 1000 images générées en 3,5s. C'est ce qui a permis de mesurer le point 1 ci-dessus au lieu de le laisser à l'état de conjecture.
 
 ## Priorisation retenue (3 jours avant l'échéance)
 
-**À faire, dans cet ordre :**
-1. Script de seed — condition pour pouvoir mesurer et démontrer le reste.
-2. Filtrage viewport + `WHERE visible = true` côté backend — le cœur du projet ; le filtre `visible` est quasiment gratuit une fois le `WHERE` en place.
-3. Debounce des requêtes + déchargement des images hors viewport — sans ces deux-là, la démo viewport s'effondre au premier test réel avec beaucoup d'images.
-4. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
+**Fait (25 sept)** : script de seed, filtrage viewport + `visible = true` côté backend, mesurés (640ms/268 Ko sans filtre → 15ms/4 Ko avec, à 1000 éléments).
+
+**Reste, dans cet ordre :**
+1. Le frontend envoie son viewport réel à `GET /elements` (aujourd'hui il demande toujours tout).
+2. Debounce des requêtes + déchargement des images hors viewport — sans ces deux-là, la démo viewport s'effondre au premier test réel avec beaucoup d'images.
+3. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
 
 **Identifié mais volontairement non implémenté, faute de temps :** thumbnails/LOD, index R-Tree, déduplication par hash, PATCH groupé, canvas en couches, dirty rect, verrouillage SQLite concurrent. Objectif pour la soutenance : présenter ces axes comme mesurés et chiffrés, avec la raison du choix de priorisation — préférable à une implémentation à moitié terminée.

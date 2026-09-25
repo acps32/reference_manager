@@ -36,12 +36,33 @@ def element_to_dict(element: Element) -> dict:
 
 
 @router.get("/elements")
-def list_elements(db: Session = Depends(get_db)):
+def list_elements(
+    # Rectangle du viewport, en coordonnées monde. Facultatif : sans ces 4
+    # paramètres, on renvoie tout (rétrocompatible avec l'existant, et utile
+    # pour les scripts de test/maintenance qui n'ont pas de notion de vue).
+    x: float | None = None,
+    y: float | None = None,
+    width: float | None = None,
+    height: float | None = None,
+    db: Session = Depends(get_db),
+):
     # Les éléments supprimés (visible=False) ne sont pas renvoyés : les laisser
     # passer revenait à les faire télécharger et décoder par le navigateur à
     # chaque chargement de page, pour ne jamais les afficher.
-    elements = db.query(Element).filter(Element.visible.is_(True)).all()
-    return [element_to_dict(element) for element in elements]
+    query = db.query(Element).filter(Element.visible.is_(True))
+
+    if None not in (x, y, width, height):
+        # Même test de chevauchement rectangle-rectangle que getElementsInRect
+        # côté frontend (canvas.js) - fait ici pour ne renvoyer QUE ce qui
+        # touche la vue, au lieu de tout envoyer puis filtrer après coup.
+        query = query.filter(
+            Element.x < x + width,
+            Element.x + Element.width > x,
+            Element.y < y + height,
+            Element.y + Element.height > y,
+        )
+
+    return [element_to_dict(element) for element in query.all()]
 
 
 class ElementUpdate(BaseModel):
