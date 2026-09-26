@@ -15,6 +15,22 @@ Analyse du 22 septembre, suite à la question "qu'est-ce qui se passe si je cont
 - **`createImageBitmap()` au lieu de `<img>`** — décodage hors du thread principal (pas de freeze au chargement), et surtout un `.close()` explicite pour libérer la mémoire de façon déterministe plutôt que d'attendre le passage du garbage collector.
 - **Thumbnails / LOD** — le plus gros levier : c'est le seul qui règle le cas "image 4K visible mais affichée en 50×50 px à l'écran". Générer 2-3 tailles à l'upload (Pillow, déjà une dépendance) et servir celle qui correspond au niveau de zoom courant.
 
+### Plafond mémoire chiffré (26 sept)
+
+Une image décodée coûte `largeur x hauteur x 4 octets` en RAM, **quelle que soit la compression du fichier sur le disque** : une 4K (3840x2160) pèse 33 Mo décodée, que le JPEG fasse 2 Mo ou 500 Ko. Corollaire important : la compression (WebP/AVIF) optimise le réseau et le disque, jamais la RAM — le LOD est le seul levier sur le coût décodé. (Les navigateurs gardant parfois une copie CPU et une texture GPU, ces chiffres sont un plancher.)
+
+En raisonnant à l'envers depuis ~2 Go utilisables dans un onglet :
+
+| | Sans LOD | Avec LOD (vignette 256px) |
+|---|---|---|
+| Images 4K | ~60 | 1000+ |
+| Images 1080p | ~240 | 1000+ |
+| Images « référence » typiques (1500x1000) | ~300 | 1000+ |
+
+Le LOD est donc précisément la frontière entre 60 et 1000 images : pas un polish, mais la décision d'architecture qui fixe la capacité du produit. Coût estimé à une demi-journée : le gros est facile (génération Pillow à l'upload, choix du palier côté client via `element.width * scale`), le pénible est l'échange sans clignotement (charger dans un second objet `Image` et ne remplacer la référence que dans son `onload`) et l'hystérésis sur le seuil, sans quoi ça bascule en boucle.
+
+**Piège pour la démo** : les images du script de seed font 200x200 px, soit 160 Ko en RAM. Une démo à 1000 images générées prouve le point réseau/SQL et le point CPU, **pas** le point mémoire. Pour celui-là il faut quelques vraies images 4K et le calcul ci-dessus — deux démos pour deux arguments.
+
 ## 3. Rendu canvas
 
 - **Culling côté client** — sauter le `drawImage` des éléments hors écran dans `drawElements()` (`canvas.js`). Test de rectangle peu coûteux, gain immédiat dès que le nombre d'éléments grandit.
@@ -30,6 +46,7 @@ Analyse du 22 septembre, suite à la question "qu'est-ce qui se passe si je cont
 
 ## 5. Backend / base
 
+- **N+1 sur l'héritage à tables jointes — TROUVÉ ET CORRIGÉ (26 sept).** `db.query(Element)` ne lit que la table `elements` ; quand `element_to_dict()` accède ensuite à `chemin_fichier` ou `contenu`, SQLAlchemy repart chercher chaque ligne fille une par une. Mesuré sur 1000 éléments : **1001 requêtes SQL, 634 ms**. Corrigé par `with_polymorphic(Element, "*")`, qui demande la jointure des sous-classes dès le départ : **1 requête, 31 ms** — soit 20x sur la base, ~10x de bout en bout en HTTP (630 ms → 65 ms). Le volume transféré ne bouge pas (242 Ko) : c'était un problème de temps serveur, pas de réseau, et le filtrage par viewport reste donc entier. N'apparaissait dans aucune des listes ci-dessus : trouvé en mesurant, pas en relisant le code.
 - **PATCH groupé** — déplacer N éléments sélectionnés déclenche actuellement N requêtes `PATCH` séparées (une boucle sur `dragGroup`, voir `main.js`). Un endpoint de mise à jour en masse ramènerait ça à une seule requête/transaction.
 - **Index sur `canvas_id` et `visible`.**
 - **Verrouillage SQLite en écriture concurrente** ("database is locked") — probable dès les premiers tests de charge avec des `PATCH` rapprochés (SQLite n'autorise qu'un seul writer à la fois).
@@ -42,15 +59,19 @@ Analyse du 22 septembre, suite à la question "qu'est-ce qui se passe si je cont
 
 ## 7. Le point bloquant pour tout le reste
 
-**Fait (25 sept)** : `backend/seed.py`, symétrique de `reset.py` — génère N images de test en grille (couleur + numéro visible), écriture directe en base (pas de N requêtes HTTP). 1000 images générées en 3,5s. C'est ce qui a permis de mesurer le point 1 ci-dessus au lieu de le laisser à l'état de conjecture.
+**Fait (26 sept)** : `backend/seed.py`, symétrique de `reset.py` — génère N images numérotées en grille régulière, par écriture directe en base (et non N requêtes HTTP) : 1000 images en 3,6 s. La régularité de la grille est le point important : avec `SPACING = 260`, une vue de 1000x1000 placée à l'origine doit contenir exactement 16 images. C'est ce qui rend le filtrage par viewport *vérifiable* plutôt que seulement plausible.
 
-## Priorisation retenue (3 jours avant l'échéance)
+## Priorisation retenue (2 jours avant l'échéance)
 
-**Fait (25 sept)** : script de seed, filtrage viewport + `visible = true` côté backend, mesurés (640ms/268 Ko sans filtre → 15ms/4 Ko avec, à 1000 éléments).
+**Fait (26 sept)**, dans cet ordre, chaque étape rendant la suivante mesurable :
+1. Script de seed (`seed.py`) — sans jeu de test à la demande, tout le reste serait resté conjectural.
+2. Mesure de référence : `GET /elements` à 1000 éléments = 242 Ko, ~630 ms, 1001 requêtes SQL.
+3. Correction du N+1 (`with_polymorphic`) : ~630 ms → ~65 ms, à volume transféré inchangé.
 
 **Reste, dans cet ordre :**
-1. Le frontend envoie son viewport réel à `GET /elements` (aujourd'hui il demande toujours tout).
-2. Debounce des requêtes + déchargement des images hors viewport — sans ces deux-là, la démo viewport s'effondre au premier test réel avec beaucoup d'images.
-3. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
+1. Filtrage par viewport côté backend (`WHERE` sur x/y/width/height) — le seul levier sur les 242 Ko.
+2. Le frontend envoie son viewport réel à `GET /elements` (aujourd'hui il demande toujours tout).
+3. Debounce des requêtes + déchargement des images hors viewport — sans ces deux-là, la démo viewport s'effondre au premier test réel avec beaucoup d'images.
+4. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
 
-**Identifié mais volontairement non implémenté, faute de temps :** thumbnails/LOD, index R-Tree, déduplication par hash, PATCH groupé, canvas en couches, dirty rect, verrouillage SQLite concurrent. Objectif pour la soutenance : présenter ces axes comme mesurés et chiffrés, avec la raison du choix de priorisation — préférable à une implémentation à moitié terminée.
+**Identifié mais volontairement non implémenté, faute de temps :** thumbnails/LOD (chiffré en section 2), index R-Tree, déduplication par hash, PATCH groupé, canvas en couches, dirty rect, verrouillage SQLite concurrent. Objectif pour la soutenance : présenter ces axes comme mesurés et chiffrés, avec la raison du choix de priorisation — préférable à une implémentation à moitié terminée.

@@ -1,93 +1,112 @@
 """
-Génère N images de test réparties en grille, pour pouvoir mesurer le
-comportement de l'appli à charge (10 -> 100 -> 1000 images) avant/après le
-chargement par viewport. Symétrique de reset.py : celui-ci vide, celui-ci
-remplit.
+Générateur de jeu de test pour les mesures de performance, symétrique de
+reset.py : crée N images numérotées et les dispose en grille régulière, par
+écriture directe en base (et non N requêtes HTTP), donc en quelques secondes.
+
+La régularité de la grille est volontaire : elle rend calculable à l'avance le
+nombre d'éléments attendus dans un rectangle donné (largeur / SPACING colonnes
+x hauteur / SPACING lignes). C'est ce qui permet de *vérifier* le filtrage par
+viewport plutôt que de le constater à l'oeil.
 
 Usage : depuis backend/, venv activé -> python seed.py [nombre]
-(200 par défaut)
+Lancer reset.py avant : les noms de fichiers sont dérivés de l'index, donc un
+second passage entrerait en collision avec la contrainte d'unicité sur
+chemin_fichier.
 """
 
-import math
 import sys
-import uuid
+from pathlib import Path
 
-from PIL import Image as PILImage, ImageDraw
+from PIL import Image as PILImage, ImageDraw, ImageFont
 
 from app.database import Base, SessionLocal, engine
-from app.models import Canvas, Image
-from app.routers.images import STORAGE_DIR
+from app.models import Image
+from app.routers.images import BASE_DIR, STORAGE_DIR, get_or_create_canvas
 
-IMAGE_SIZE = 200  # carré, en pixels ET en unités du monde (1:1, pour rester simple)
-SPACING = 260  # écart entre le coin de deux images voisines, en unités du monde
+IMAGE_SIZE = 200
+SPACING = 260
+COLUMNS = 32
+DEFAULT_COUNT = 1000
+
+# Teintes assez sombres pour que le numéro en blanc reste lisible par-dessus.
 PALETTE = [
-    (230, 126, 34), (52, 152, 219), (46, 204, 113), (155, 89, 182),
-    (241, 196, 15), (231, 76, 60), (26, 188, 156), (149, 165, 166),
+    (198, 74, 74),    # rouge
+    (198, 128, 58),   # orange
+    (150, 138, 44),   # ocre
+    (92, 150, 74),    # vert
+    (58, 140, 140),   # cyan
+    (52, 110, 180),   # bleu
+    (110, 82, 170),   # violet
+    (170, 74, 132),   # magenta
 ]
 
+# Construite une seule fois : la police est identique pour les N images, la
+# reconstruire à chaque appel serait du travail refait 1000 fois pour rien.
+FONT = ImageFont.load_default(size=48)
 
-def make_test_file(index: int) -> str:
-    """Crée un PNG uni avec un numéro dessiné dessus - pas des images vides
-    indiscernables les unes des autres pendant les tests."""
+
+def create_test_image(index: int) -> Path:
     color = PALETTE[index % len(PALETTE)]
-    img = PILImage.new("RGB", (IMAGE_SIZE, IMAGE_SIZE), color)
-    draw = ImageDraw.Draw(img)
-    label = str(index)
-    # textbbox plutôt qu'une taille de police fixe : centre le numéro quelle
-    # que soit sa longueur (1 chiffre ou 4), sans dépendre d'une police précise.
-    bbox = draw.textbbox((0, 0), label)
-    text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    draw.text(
-        ((IMAGE_SIZE - text_w) / 2, (IMAGE_SIZE - text_h) / 2),
-        label, fill="white",
-    )
+    image = PILImage.new("RGB", (IMAGE_SIZE, IMAGE_SIZE), color)
 
-    filename = f"{uuid.uuid4()}.png"
-    img.save(STORAGE_DIR / filename)
-    return f"storage/images/{filename}"
+    # C'est l'objet Draw qui porte les méthodes de dessin, pas l'image.
+    draw = ImageDraw.Draw(image)
+    # anchor="mm" : la position passée est le centre du texte et non son coin
+    # haut-gauche, ce qui évite de mesurer la largeur du numéro pour le centrer.
+    center = IMAGE_SIZE / 2
+    draw.text((center, center), str(index), fill="white", font=FONT, anchor="mm")
+
+    destination = STORAGE_DIR / f"seed_{index:04d}.png"
+    image.save(destination)
+    return destination
 
 
-def main(count: int):
+def main():
+    # sys.argv est la liste des mots tapés dans le terminal. Le premier est
+    # toujours le nom du script lui-même, donc l'argument éventuel est en [1] -
+    # et c'est une chaîne de caractères même quand on tape un nombre.
+    if len(sys.argv) > 1:
+        count = int(sys.argv[1])
+    else:
+        count = DEFAULT_COUNT
+
+    # Au cas où le script tourne sans que le serveur n'ait jamais démarré.
     Base.metadata.create_all(bind=engine)
-
     db = SessionLocal()
+
     try:
-        canvas = db.query(Canvas).first()
-        if canvas is None:
-            canvas = Canvas(nom="Canevas principal")
-            db.add(canvas)
-            db.commit()
-            db.refresh(canvas)
+        canvas = get_or_create_canvas(db)
 
-        # Grille à peu près carrée, pour étaler les images dans les deux
-        # dimensions - un test de viewport n'a rien à filtrer si tout est
-        # aligné sur un seul axe.
-        columns = math.ceil(math.sqrt(count))
+        for index in range(count):
+            path = create_test_image(index)
+            # divmod rend le quotient puis le reste : la ligne, puis la colonne.
+            row, column = divmod(index, COLUMNS)
 
-        for i in range(count):
-            column, row = i % columns, i // columns
-            chemin_fichier = make_test_file(i)
-            db.add(Image(
-                canvas_id=canvas.id,
-                nom_original=f"seed_{i}.png",
-                chemin_fichier=chemin_fichier,
-                x=column * SPACING,
-                y=row * SPACING,
-                width=float(IMAGE_SIZE),
-                height=float(IMAGE_SIZE),
-                z_index=0,
-                visible=True,
-            ))
+            # db.add() ne touche pas encore la base, il marque seulement l'objet
+            # comme "à écrire" : un seul commit après la boucle suffit donc, au
+            # lieu de N transactions (et N synchronisations disque).
+            db.add(
+                Image(
+                    canvas_id=canvas.id,
+                    nom_original=path.name,
+                    # .as_posix() force des "/" même sous Windows : chemin_fichier
+                    # doit rester utilisable tel quel dans une URL (frontend/js/api.js).
+                    chemin_fichier=path.relative_to(BASE_DIR).as_posix(),
+                    x=float(column * SPACING),
+                    y=float(row * SPACING),
+                    width=float(IMAGE_SIZE),
+                    height=float(IMAGE_SIZE),
+                    z_index=0,
+                    visible=True,
+                )
+            )
 
-        # Un seul commit pour les N lignes : passer par POST /upload ferait N
-        # requêtes HTTP + N transactions, bien trop lent pour tester à 1000.
         db.commit()
     finally:
         db.close()
 
-    print(f"{count} images de test créées, en grille de {columns} colonnes.")
+    print(f"{count} image(s) générée(s) dans {STORAGE_DIR}, en grille de {COLUMNS} colonnes.")
 
 
 if __name__ == "__main__":
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 200
-    main(n)
+    main()

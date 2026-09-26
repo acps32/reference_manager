@@ -18,6 +18,24 @@ Trace des choix techniques et de leur raison, pour ne pas avoir à se souvenir "
 
 **Contrainte conservée pour permettre cette migration future à coût nul aujourd'hui : le backend n'expose qu'une API JSON, jamais de HTML généré côté serveur. Le frontend reste un ensemble de fichiers statiques autonomes.**
 
+## Portage vers un plugin Obsidian (26 sept)
+
+Analyse faite à froid à deux jours de la soutenance, pour vérifier que la cible à terme ne rende pas le travail actuel jetable. **Sujet que je compte aborder en soutenance** : cette section en contient les clés.
+
+**Obsidian est une application Electron, donc un moteur de rendu Chromium.** Deux conséquences opposées, et c'est le coeur de l'analyse : le code Canvas 2D y tourne à l'identique (ce n'est pas un portage vers une autre technologie, c'est le même moteur) ; mais les contraintes mémoire y sont celles d'un onglet de navigateur, pas celles d'une application native — le LOD y sera donc tout autant nécessaire (chiffres dans `Optimisations.md`).
+
+**~80 % du frontend est réutilisable tel quel** (1286 lignes sur 1557 au 26 sept) : toute la logique canevas, transformations, pointeur, texte, raccourcis, menus, barre d'état. Le reste est concentré dans trois fichiers — `api.js` (93 lignes) à réécrire, `view.js` et `main.js` (178) à adapter (montage dans une `ItemView` au lieu du plein écran, thème délégué à Obsidian).
+
+Ce n'est pas un hasard, c'est le rendement direct de la contrainte « API JSON pure » ci-dessus : `api.js` est la seule couture qui sait qu'un serveur existe. Deux stratégies de migration restent ouvertes, et le choix peut être fait plus tard :
+1. **Garder le backend Python**, lancé en processus enfant par le plugin (`child_process` + HTTP local, voir plus haut) : `api.js` ne change quasiment pas, mais l'ensemble devient desktop-only.
+2. **Plugin autonome, sans Python** : on réimplémente les six fonctions de `api.js` sur le vault — `vault.createBinary()` pour les fichiers, `adapter.getResourcePath()` en remplacement de `loadImage()`, l'état du board dans un JSON du vault (exactement ce que sont les fichiers `.canvas` d'Obsidian : synchronisables, versionnables). Plus de travail, mais compatible mobile.
+
+**Le modèle de données survit dans les deux cas.** L'héritage polymorphe `Element`/`Image`/`Texte` avec son champ discriminant `type` est exactement la forme que prend la même modélisation en JSON : c'est la syntaxe SQLAlchemy qui est spécifique, pas la conception.
+
+**Les tokens CSS payent aussi** : Obsidian expose ses propres variables de thème (`--background-primary`, `--text-normal`, `--interactive-accent`…), donc redéfinir les tokens de `:root` en fonction des leurs suffit. Le toggle clair/sombre disparaît au profit de celui d'Obsidian — moins de code, pas plus.
+
+**Coût d'apprentissage réel, à ne pas sous-estimer** : la chaîne de build (TypeScript + esbuild) et le passage des scripts à globales partagées vers de vrais modules ES avec `import`/`export`. Mécanique, mais réel — et de toute façon souhaitable.
+
 ## Chargement par viewport (le point critique du projet)
 
 **Filtrage fait côté backend (requête SQL sur `x`, `y`, `width`, `height`), pas côté frontend.** Le frontend envoie juste les coordonnées de la zone visible ; c'est le serveur qui décide quelles images renvoyer. Choix cohérent avec l'objectif du projet : une vitrine de compétence back-end, pas de rendu front.

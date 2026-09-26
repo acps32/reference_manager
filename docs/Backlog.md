@@ -68,10 +68,11 @@ Les boutons ⋮ et ? forment une colonne en haut à droite ; leurs panneaux s'ou
 | ID | Titre | Portée | État |
 |---|---|---|---|
 | PERF-01 | Script de seed (`backend/seed.py`) pour générer N images de test en grille | back | fait |
-| PERF-02 | `GET /elements` filtré par viewport (x/y/width/height), facultatif et rétrocompatible | back | fait |
+| PERF-02 | `GET /elements` filtré par viewport (x/y/width/height), facultatif et rétrocompatible | back | à faire |
 | PERF-03 | Le frontend envoie son viewport réel à `GET /elements` au lieu de tout demander | front | à faire |
 | PERF-04 | Debounce des requêtes viewport pendant un pan/zoom continu | front | à faire |
 | PERF-05 | Décharger les images qui sortent du viewport (libérer la mémoire, pas seulement arrêter de les demander) | front | à faire |
+| PERF-06 | Corriger le N+1 de `GET /elements` (`with_polymorphic`) : 1001 requêtes / 630 ms → 1 / 65 ms | back | fait |
 
 Détail et chiffres mesurés : voir `Optimisations.md`.
 
