@@ -66,6 +66,8 @@ async function deleteElements(elements) {
             patchElement(element.id, { visible: false }).catch((error) => console.error(error))
         )
     );
+
+    scheduleViewportLoad(); // rafraîchit le total de la barre d'état, que la suppression vient de changer
 }
 
 async function copyElementToClipboard(element) {

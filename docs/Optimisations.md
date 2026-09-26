@@ -77,7 +77,9 @@ Deux points de conception valent d'être défendus :
 - **La fusion n'écrase jamais un élément déjà chargé, elle ajoute seulement les manquants.** `selectedElements`, `dragGroup` et `editedText` contiennent les objets eux-mêmes : les remplacer par des objets neufs casserait silencieusement la sélection et les gestes en cours, et forcerait à redécoder des images déjà en mémoire.
 - **La marge de déchargement (2) est bien plus large que celle de chargement (0,5).** Avec un seuil unique, un élément posé sur la limite serait déchargé puis rechargé en boucle à chaque petit mouvement. L'écart entre les deux seuils est ce qui évite ce battement.
 
-**Reste :**
-1. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
+8. Rendu coalescé sur la frame, pour le seul `mousemove` (`requestRender`, `canvas.js`) : 100 appels d'affilée ne produisent qu'un rendu. Gain réel surtout sur les souris à haute fréquence d'interrogation, les navigateurs regroupant déjà les `mousemove` par frame dans la plupart des cas. Les 19 autres appels à `render()` restent synchrones — les toucher tous aurait été un risque disproportionné à deux jours de la soutenance.
+9. `GET /elements/summary` (agrégat SQL : total et bounding box). Il corrige une régression introduite par le chargement par vue : `zoomToFit()` cadrait sur `loadedElements`, donc sur les seuls éléments proches de la vue, et ne cadrait plus le board. Il alimente aussi le compteur « chargés / total » de la barre d'état, qui rend l'optimisation visible à l'écran pendant la démo.
+
+**Écarté après mesure : le culling côté client.** Il devait éviter le `drawImage` des éléments hors écran, mais `loadedElements` ne contient plus que ce qui est près de la vue : il n'y a presque plus rien à écarter. Le chargement par vue a réglé le problème à la racine, donc l'implémenter n'aurait fait qu'ajouter du code sans gain mesurable.
 
 **Identifié mais volontairement non implémenté, faute de temps :** thumbnails/LOD (chiffré en section 2), index R-Tree, déduplication par hash, PATCH groupé, canvas en couches, dirty rect, verrouillage SQLite concurrent. Objectif pour la soutenance : présenter ces axes comme mesurés et chiffrés, avec la raison du choix de priorisation — préférable à une implémentation à moitié terminée.

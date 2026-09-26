@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session, with_polymorphic
 
 from ..database import get_db
@@ -59,6 +60,26 @@ def list_elements(
         )
 
     return [element_to_dict(element) for element in query.all()]
+
+
+@router.get("/elements/summary")
+def elements_summary(db: Session = Depends(get_db)):
+    # Le frontend ne charge qu'une partie des éléments : il ne peut plus déduire de sa propre liste
+    # le total ni les limites du board. Un agrégat SQL les donne sans rien transférer d'autre.
+    count, min_x, min_y, max_x, max_y = (
+        db.query(
+            func.count(Element.id),
+            func.min(Element.x),
+            func.min(Element.y),
+            func.max(Element.x + Element.width),
+            func.max(Element.y + Element.height),
+        )
+        .filter(Element.visible.is_(True))
+        .one()
+    )
+
+    # min/max valent None sur un board vide : le frontend se fie à count avant de les lire.
+    return {"count": count, "min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
 
 
 class ElementUpdate(BaseModel):

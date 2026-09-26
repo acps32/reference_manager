@@ -6,15 +6,12 @@
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 5;
 
-// Cadre le zoom/pan pour que tous les éléments visibles tiennent à l'écran.
+// Cadre le zoom/pan pour que tout le board tienne à l'écran. Les limites viennent de boardSummary
+// (viewport.js) et non de loadedElements, qui ne contient que ce qui est près de la vue courante.
 function zoomToFit() {
-    const visibleElements = loadedElements.filter((element) => element.visible);
-    if (visibleElements.length === 0) return;
+    if (boardSummary.count === 0) return;
 
-    const minX = Math.min(...visibleElements.map((element) => element.x));
-    const minY = Math.min(...visibleElements.map((element) => element.y));
-    const maxX = Math.max(...visibleElements.map((element) => element.x + element.width));
-    const maxY = Math.max(...visibleElements.map((element) => element.y + element.height));
+    const { min_x: minX, min_y: minY, max_x: maxX, max_y: maxY } = boardSummary;
 
     const PADDING = 40; // marge en pixels écran autour du contenu
     const contentWidth = maxX - minX;

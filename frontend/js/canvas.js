@@ -300,6 +300,19 @@ function drawSelectionBox() {
     ctx.strokeRect(x, y, width, height);
 }
 
+// Coalesce les rendus sur la frame : un mousemove peut se déclencher plusieurs fois entre deux
+// rafraîchissements d'écran, et redessiner alors plusieurs fois pour un seul affichage.
+let renderRequested = false;
+
+function requestRender() {
+    if (renderRequested) return;
+    renderRequested = true;
+    requestAnimationFrame(() => {
+        renderRequested = false;
+        render();
+    });
+}
+
 function render() {
     drawGrid();
     drawElements();

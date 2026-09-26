@@ -26,6 +26,15 @@ async function uploadFile(file, centerX, centerY) {
         throw new Error(`Erreur HTTP ${response.status}`);
 }
 
+// Nombre total d'éléments et limites du board, que le frontend ne peut plus déduire de sa
+// propre liste puisqu'il n'en charge qu'une partie.
+async function fetchSummary() {
+    const response = await fetch(`${API_URL}/elements/summary`);
+    if (!response.ok)
+        throw new Error(`Erreur HTTP ${response.status}`);
+    return response.json();
+}
+
 async function createText(contenu, x = 0, y = 0) {
     const response = await fetch(`${API_URL}/texts`, {
         method: "POST",

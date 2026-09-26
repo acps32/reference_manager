@@ -28,8 +28,9 @@ function selectionSummary() {
 }
 
 function updateStatusBar() {
-    const visibleCount = loadedElements.filter((element) => element.visible).length;
-    const elements = pluralize(visibleCount, "élément");
+    // "chargés / total" : le premier nombre suit la vue, le second est celui du board entier.
+    const loadedCount = loadedElements.filter((element) => element.visible).length;
+    const elements = boardSummary.count ? `${loadedCount} / ${boardSummary.count} éléments` : pluralize(loadedCount, "élément");
     const zoomLevel = `${Math.round(zoom * 100)} %`;
     const selection = selectionSummary();
 

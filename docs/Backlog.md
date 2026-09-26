@@ -73,6 +73,9 @@ Les boutons ⋮ et ? forment une colonne en haut à droite ; leurs panneaux s'ou
 | PERF-04 | Debounce des requêtes viewport pendant un pan/zoom continu | front | fait |
 | PERF-05 | Décharger les images qui sortent du viewport (libérer la mémoire, pas seulement arrêter de les demander) | front | fait |
 | PERF-06 | Corriger le N+1 de `GET /elements` (`with_polymorphic`) : 1001 requêtes / 630 ms → 1 / 65 ms | back | fait |
+| PERF-07 | Rendu coalescé sur la frame (`requestRender`) pour le seul `mousemove` ; les 19 autres `render()` restent synchrones | front | fait |
+| PERF-08 | `GET /elements/summary` (total + bounding box) : corrige `zoomToFit`, qui cadrait sur les seuls éléments chargés, et alimente le compteur « chargés / total » | back+front | fait |
+| PERF-09 | Culling client — **écarté après mesure** : `loadedElements` ne contient plus que ce qui est près de la vue, il n'y a quasiment plus rien à écarter au dessin | front | abandonné |
 
 Détail et chiffres mesurés : voir `Optimisations.md`.
 

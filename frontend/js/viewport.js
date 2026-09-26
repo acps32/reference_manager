@@ -76,8 +76,16 @@ function evictOutsideViewport() {
     loadedElements = kept;
 }
 
+// Dernier agrégat connu du board entier : lu par zoomToFit() (view.js) et par la barre d'état,
+// qui ont besoin du total alors que loadedElements n'en contient qu'une partie.
+let boardSummary = { count: 0, min_x: null, min_y: null, max_x: null, max_y: null };
+
 async function loadViewport() {
-    await mergeElements(await fetchElements(getViewportRect()));
+    // En parallèle : l'agrégat est une requête SQL unique et une réponse de quelques octets.
+    const [rawElements, summary] = await Promise.all([fetchElements(getViewportRect()), fetchSummary()]);
+    boardSummary = summary;
+
+    await mergeElements(rawElements);
     evictOutsideViewport();
     render();
 }

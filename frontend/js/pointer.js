@@ -114,5 +114,5 @@ window.addEventListener("mousemove", (event) => {
 
     lastX = event.clientX;
     lastY = event.clientY;
-    render();
+    requestRender(); // seul appel à haute fréquence : les 19 autres render() restent synchrones
 });
