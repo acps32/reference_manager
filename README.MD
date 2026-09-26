@@ -72,6 +72,7 @@ This is a deliberate choice: keeping frontend and backend strictly decoupled mea
 - [`docs/Backlog.md`](docs/Backlog.md): ticket-level backlog — done, planned, and deliberately dropped
 - [`docs/Optimisations.md`](docs/Optimisations.md): scaling analysis (memory, rendering, network) and prioritisation
 - [`docs/Schema.md`](docs/Schema.md): entity-relationship diagram
+- [`docs/soutenance/`](docs/soutenance/): revision notes for the defence — data model, canvas maths, the full optimisation chain with its figures, and the decisions behind each choice
 
 ## Running it
 

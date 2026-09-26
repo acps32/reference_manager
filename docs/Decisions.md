@@ -24,7 +24,7 @@ Analyse faite à froid à deux jours de la soutenance, pour vérifier que la cib
 
 **Obsidian est une application Electron, donc un moteur de rendu Chromium.** Deux conséquences opposées, et c'est le coeur de l'analyse : le code Canvas 2D y tourne à l'identique (ce n'est pas un portage vers une autre technologie, c'est le même moteur) ; mais les contraintes mémoire y sont celles d'un onglet de navigateur, pas celles d'une application native — le LOD y sera donc tout autant nécessaire (chiffres dans `Optimisations.md`).
 
-**~80 % du frontend est réutilisable tel quel** (1286 lignes sur 1557 au 26 sept) : toute la logique canevas, transformations, pointeur, texte, raccourcis, menus, barre d'état. Le reste est concentré dans trois fichiers — `api.js` (93 lignes) à réécrire, `view.js` et `main.js` (178) à adapter (montage dans une `ItemView` au lieu du plein écran, thème délégué à Obsidian).
+**~84 % du frontend est réutilisable tel quel** (1403 lignes sur 1674 au 27 sept) : toute la logique canevas, transformations, pointeur, texte, raccourcis, menus, barre d'état, et le chargement par vue. Le reste est concentré dans trois fichiers — `api.js` (98 lignes) à réécrire, `view.js` et `main.js` (173) à adapter (montage dans une `ItemView` au lieu du plein écran, thème délégué à Obsidian).
 
 Ce n'est pas un hasard, c'est le rendement direct de la contrainte « API JSON pure » ci-dessus : `api.js` est la seule couture qui sait qu'un serveur existe. Deux stratégies de migration restent ouvertes, et le choix peut être fait plus tard :
 1. **Garder le backend Python**, lancé en processus enfant par le plugin (`child_process` + HTTP local, voir plus haut) : `api.js` ne change quasiment pas, mais l'ensemble devient desktop-only.

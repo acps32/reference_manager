@@ -41,12 +41,15 @@ erDiagram
     IMAGE {
         int id PK "FK vers element.id"
         string nom_original
-        string chemin_fichier
+        string chemin_fichier UK
+        bool flip_horizontal
+        bool flip_vertical
     }
 
     TEXTE {
         int id PK "FK vers element.id"
         string contenu
+        float font_size
     }
 ```
 
@@ -56,4 +59,8 @@ Un `ELEMENT` n'a jamais à la fois une ligne `IMAGE` et une ligne `TEXTE` associ
 
 `group_id` est nullable : un élément peut exister sans appartenir à aucun groupe.
 
-Constructions actuelles du MVP : `CANVAS` (un seul enregistrement, sans interface de sélection) et `ELEMENT`/`IMAGE`. `GROUPE` et `TEXTE` sont modélisés mais sans route API ni interface pour l'instant (voir `roadmap.md`).
+`chemin_fichier` est unique : deux éléments ne peuvent pas pointer le même fichier. C'est ce qui empêche aujourd'hui de dupliquer un élément sans recopier son fichier (ticket `ELM-01`).
+
+`font_size` est stocké explicitement et la hauteur du cadre en découle : avec le retour à la ligne, le nombre de lignes dépend de la police et de la largeur, donc la hauteur ne peut pas déterminer la police.
+
+État au 27 septembre : `ELEMENT`, `IMAGE` et `TEXTE` sont implémentés de bout en bout (modèle, routes, interface). `CANVAS` existe avec un seul enregistrement et sans interface de sélection ; `GROUPE` est modélisé mais sans route ni interface (voir `Backlog.md`, `GRP-01` à `GRP-07`).

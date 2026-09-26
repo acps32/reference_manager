@@ -19,11 +19,11 @@ Upload d'une image, sauvegarde disque (copie + renommage UUID), route de service
 - ✅ Sélection multiple (Maj+clic, rectangle), déplacement de groupe
 - ✅ Transformations : redimensionnement individuel et de groupe, mise à l'échelle, symétrie
 - ✅ Annuler / rétablir, suppression réversible, éléments texte
-- 🔲 **Chargement dynamique par viewport côté backend** — non fait
+- ✅ **Chargement dynamique par viewport** — fait le 26 septembre, de bout en bout (filtre SQL, envoi de la vue réelle, limitation de fréquence, déchargement)
 
 ## 24 → 26 sept : finition, puis gel
 
-**Gel du code le samedi 26 au soir**, le dimanche étant réservé à la répétition. Modifier la veille d'une soutenance est le meilleur moyen de se présenter avec une régression non détectée.
+**Gel du code prononcé dans la nuit du 26 au 27**, après la chaîne d'optimisation et une passe de vérification complète. Le dimanche est réservé à la répétition. Modifier la veille d'une soutenance est le meilleur moyen de se présenter avec une régression non détectée.
 
 Réorientation assumée du 24 septembre : la consigne étant d'avoir un projet **à présenter** et non un produit fini, la priorité est passée à la cohérence de l'outil et à la lisibilité du périmètre, plutôt qu'à la dernière fonctionnalité technique.
 
