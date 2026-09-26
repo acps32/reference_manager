@@ -31,6 +31,7 @@ function zoomToFit() {
     offsetX = window.innerWidth / 2 - (minX + contentWidth / 2) * zoom;
     offsetY = window.innerHeight / 2 - (minY + contentHeight / 2) * zoom;
 
+    scheduleViewportLoad();
     render();
 }
 
@@ -46,6 +47,7 @@ canvas.addEventListener("wheel", (event) => {
     offsetX = event.clientX - worldBeforeZoom.x * zoom;
     offsetY = event.clientY - worldBeforeZoom.y * zoom;
 
+    scheduleViewportLoad(); // dézoomer élargit la vue : elle peut découvrir des éléments non chargés
     render();
 }, { passive: false });
 
@@ -56,9 +58,8 @@ document.getElementById("upload-input").addEventListener("change", async (event)
     const center = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
     await uploadFile(file, center.x, center.y);
 
-    // Réaffiche tout, y compris le nouvel élément (pas de mise à jour incrémentale pour l'instant, on recharge la liste complète).
-    loadedElements = await loadAllElements();
-    render();
+    // Recharge la vue pour y faire apparaître le nouvel élément, importé au centre de l'écran.
+    await loadViewport();
 });
 
 // ===== Panneau de paramètres avancés (touche N ou bouton "...") =====

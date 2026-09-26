@@ -8,7 +8,7 @@ let offsetX = 0;
 let offsetY = 0;
 let zoom = 1;
 
-// Rempli par main.js une fois loadAllElements() résolu (voir api.js). Chaque
+// Rempli par loadViewport() (viewport.js), qui fusionne au lieu de remplacer. Chaque
 // élément a des champs communs (id, type, x, y, width, height, visible) et
 // des champs propres à son type (image / contenu pour texte).
 let loadedElements = [];
@@ -323,8 +323,7 @@ canvas.addEventListener("drop", async (event) => {
     // Déposé : à l'endroit du lâcher, c'est ce que l'utilisateur vise.
     const dropPoint = screenToWorld(event.clientX, event.clientY);
     await uploadFile(file, dropPoint.x, dropPoint.y);
-    loadedElements = await loadAllElements();
-    render();
+    await loadViewport();
 });
 
 window.addEventListener("paste", async (event) => {
@@ -334,7 +333,6 @@ window.addEventListener("paste", async (event) => {
         const file = item.getAsFile();
         const center = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
         await uploadFile(file, center.x, center.y);
-        loadedElements = await loadAllElements();
-        render();
+        await loadViewport();
     }
 });

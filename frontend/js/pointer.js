@@ -78,6 +78,7 @@ window.addEventListener("mousemove", (event) => {
     if (isPanning) {
         offsetX += event.clientX - lastX;
         offsetY += event.clientY - lastY;
+        scheduleViewportLoad(); // la vue a bougé : de nouveaux éléments peuvent y être entrés
     } else if (resizingGroup) {
         const worldPos = screenToWorld(event.clientX, event.clientY);
         resizeGroup(groupResizeHandle, groupResizeStartBounds, groupResizeStartPositions, worldPos);

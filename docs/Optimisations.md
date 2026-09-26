@@ -67,11 +67,17 @@ Le LOD est donc précisément la frontière entre 60 et 1000 images : pas un pol
 1. Script de seed (`seed.py`) — sans jeu de test à la demande, tout le reste serait resté conjectural.
 2. Mesure de référence : `GET /elements` à 1000 éléments = 242 Ko, ~630 ms, 1001 requêtes SQL.
 3. Correction du N+1 (`with_polymorphic`) : ~630 ms → ~65 ms, à volume transféré inchangé.
+4. Filtrage par viewport côté backend (`WHERE` sur x/y/width/height) : 1000 éléments / 242 Ko -> 16 / 3,8 Ko pour une vue de 1000x1000.
+5. Le frontend envoie sa vue réelle (`frontend/js/viewport.js`), avec une marge de 50 % pour que les éléments soient chargés avant d'entrer à l'écran.
+6. Limitation de fréquence à 150 ms : 300 `mousemove` d'affilée ne déclenchent qu'une requête, contre 300 sans elle.
+7. Déchargement des éléments qui s'éloignent, avec `img.src = ""` pour libérer le bitmap décodé sans attendre le ramasse-miettes.
 
-**Reste, dans cet ordre :**
-1. Filtrage par viewport côté backend (`WHERE` sur x/y/width/height) — le seul levier sur les 242 Ko.
-2. Le frontend envoie son viewport réel à `GET /elements` (aujourd'hui il demande toujours tout).
-3. Debounce des requêtes + déchargement des images hors viewport — sans ces deux-là, la démo viewport s'effondre au premier test réel avec beaucoup d'images.
-4. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
+Deux points de conception valent d'être défendus :
+
+- **La fusion n'écrase jamais un élément déjà chargé, elle ajoute seulement les manquants.** `selectedElements`, `dragGroup` et `editedText` contiennent les objets eux-mêmes : les remplacer par des objets neufs casserait silencieusement la sélection et les gestes en cours, et forcerait à redécoder des images déjà en mémoire.
+- **La marge de déchargement (2) est bien plus large que celle de chargement (0,5).** Avec un seuil unique, un élément posé sur la limite serait déchargé puis rechargé en boucle à chaque petit mouvement. L'écart entre les deux seuils est ce qui évite ce battement.
+
+**Reste :**
+1. Culling client + `requestAnimationFrame` — peu de code à écrire, effet visible immédiatement.
 
 **Identifié mais volontairement non implémenté, faute de temps :** thumbnails/LOD (chiffré en section 2), index R-Tree, déduplication par hash, PATCH groupé, canvas en couches, dirty rect, verrouillage SQLite concurrent. Objectif pour la soutenance : présenter ces axes comme mesurés et chiffrés, avec la raison du choix de priorisation — préférable à une implémentation à moitié terminée.

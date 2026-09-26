@@ -1,7 +1,9 @@
 const API_URL = "http://127.0.0.1:8000";
 
-async function fetchElements() {
-    const response = await fetch(`${API_URL}/elements`);
+// rect : { x, y, width, height } en coordonnées monde, ou null pour tout demander (scripts, tests).
+async function fetchElements(rect = null) {
+    const query = rect ? `?x=${rect.x}&y=${rect.y}&width=${rect.width}&height=${rect.height}` : "";
+    const response = await fetch(`${API_URL}/elements${query}`);
     if (!response.ok)
         throw new Error(`Erreur HTTP ${response.status}`);
     return response.json();
@@ -62,33 +64,27 @@ function loadImage(cheminFichier) {
     });
 }
 
-// Récupère tous les éléments (métadonnées) puis, pour les images, charge le
-// fichier en parallèle. Les textes n'ont rien à charger, ils sont prêts direct.
-async function loadAllElements() {
-    const elements = await fetchElements();
+// Transforme un élément JSON en objet utilisable par le canevas. Pour une image, attend que le
+// fichier soit téléchargé et décodé ; un texte est prêt immédiatement.
+async function hydrateElement(element) {
+    const base = {
+        id: element.id,
+        type: element.type,
+        x: element.x,
+        y: element.y,
+        width: element.width,
+        height: element.height,
+        visible: element.visible,
+    };
 
-    return Promise.all(
-        elements.map(async (element) => {
-            const base = {
-                id: element.id,
-                type: element.type,
-                x: element.x,
-                y: element.y,
-                width: element.width,
-                height: element.height,
-                visible: element.visible,
-            };
+    if (element.type === "image") {
+        base.image = await loadImage(element.chemin_fichier);
+        base.flip_horizontal = element.flip_horizontal;
+        base.flip_vertical = element.flip_vertical;
+    } else if (element.type === "texte") {
+        base.contenu = element.contenu;
+        base.font_size = element.font_size;
+    }
 
-            if (element.type === "image") {
-                base.image = await loadImage(element.chemin_fichier);
-                base.flip_horizontal = element.flip_horizontal;
-                base.flip_vertical = element.flip_vertical;
-            } else if (element.type === "texte") {
-                base.contenu = element.contenu;
-                base.font_size = element.font_size;
-            }
-
-            return base;
-        })
-    );
+    return base;
 }

@@ -61,8 +61,7 @@ async function runContextAction(action) {
         document.getElementById("upload-input").click();
     } else if (action === "text") {
         await createText("Nouveau texte", contextMenuWorldPos.x, contextMenuWorldPos.y);
-        loadedElements = await loadAllElements();
-        render();
+        await loadViewport();
     } else if (action === "select-all") {
         selectedElements = new Set(loadedElements.filter((element) => element.visible));
         render();

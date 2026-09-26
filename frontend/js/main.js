@@ -6,19 +6,16 @@
 resizeCanvas();
 render();
 
-// Le chargement est asynchrone (fetch + Image.onload pour les images, voir
-// api.js) : le premier render() ci-dessus dessine juste la grille, celui-ci
-// rajoute les éléments une fois qu'ils sont réellement prêts.
-loadAllElements()
-    .then((elements) => {
-        loadedElements = elements;
-        render();
-    })
-    .catch((error) => {
-        console.error(error);
-    });
+// Le chargement est asynchrone (fetch + décodage des images, voir api.js) : le premier render()
+// ci-dessus ne dessine que la grille, loadViewport() ajoute les éléments une fois qu'ils sont prêts.
+loadViewport().catch((error) => {
+    console.error(error);
+});
 
 window.addEventListener("resize", () => {
     resizeCanvas();
-    render();
+    // La fenêtre a changé de taille, donc la zone visible aussi : des éléments peuvent manquer.
+    loadViewport().catch((error) => {
+        console.error(error);
+    });
 });
