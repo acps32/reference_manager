@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, with_polymorphic
 
 from ..database import get_db
@@ -48,35 +48,33 @@ def list_elements(
     all_element_types = with_polymorphic(Element, "*")
 
     # visible=False : les envoyer ferait télécharger et décoder au navigateur des images jamais affichées.
-    query = db.query(all_element_types).filter(Element.visible.is_(True))
+    statement = select(all_element_types).where(Element.visible.is_(True))
 
     if None not in (x, y, width, height):
         # Même test de chevauchement que getElementsInRect (canvas.js), mais calculé par SQLite sur chaque ligne.
-        query = query.filter(
+        statement = statement.where(
             Element.x < x + width,
             Element.x + Element.width > x,
             Element.y < y + height,
             Element.y + Element.height > y,
         )
 
-    return [element_to_dict(element) for element in query.all()]
+    return [element_to_dict(element) for element in db.scalars(statement)]
 
 
 @router.get("/elements/summary")
 def elements_summary(db: Session = Depends(get_db)):
     # Le frontend ne charge qu'une partie des éléments : il ne peut plus déduire de sa propre liste
     # le total ni les limites du board. Un agrégat SQL les donne sans rien transférer d'autre.
-    count, min_x, min_y, max_x, max_y = (
-        db.query(
+    count, min_x, min_y, max_x, max_y = db.execute(
+        select(
             func.count(Element.id),
             func.min(Element.x),
             func.min(Element.y),
             func.max(Element.x + Element.width),
             func.max(Element.y + Element.height),
-        )
-        .filter(Element.visible.is_(True))
-        .one()
-    )
+        ).where(Element.visible.is_(True))
+    ).one()
 
     # min/max valent None sur un board vide : le frontend se fie à count avant de les lire.
     return {"count": count, "min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}

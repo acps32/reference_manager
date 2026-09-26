@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy import select
 from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
 from sqlalchemy.orm import Session
@@ -25,7 +26,7 @@ def get_or_create_canvas(db: Session) -> Canvas:
     docs/Decisions.md). On récupère le premier enregistrement, ou on le
     crée s'il n'existe pas encore (tout premier appel à l'API).
     """
-    canvas = db.query(Canvas).first()
+    canvas = db.scalars(select(Canvas)).first()
     if canvas is None:
         canvas = Canvas(nom="Canevas principal")
         db.add(canvas)
@@ -44,7 +45,7 @@ def free_position(db: Session, canvas_id: int, x: float, y: float) -> tuple[floa
     """Décale en diagonale tant qu'un élément visible commence déjà à cet endroit."""
     occupied = {
         (round(element.x), round(element.y))
-        for element in db.query(Element).filter(Element.canvas_id == canvas_id, Element.visible.is_(True))
+        for element in db.scalars(select(Element).where(Element.canvas_id == canvas_id, Element.visible.is_(True)))
     }
     while (round(x), round(y)) in occupied:
         x += CASCADE_STEP

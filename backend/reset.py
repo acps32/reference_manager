@@ -7,6 +7,8 @@ pour repartir d'un état propre avant ou après un test.
 Usage : depuis backend/, venv activé -> python reset.py
 """
 
+from sqlalchemy import select
+
 from app.database import Base, SessionLocal, engine
 from app.models import Canvas, Element, Groupe
 from app.routers.images import STORAGE_DIR
@@ -21,13 +23,13 @@ def main():
     try:
         # db.delete() sur un Element chargé par l'ORM (donc déjà reconstruit en Image/Texte via le polymorphisme) 
         # supprime la ligne fille ET la ligne "elements" correspondante, dans le bon ordre.
-        for element in db.query(Element).all():
+        for element in db.scalars(select(Element)).all():
             db.delete(element)
 
         # Groupes puis canvas : les elements les référencent (FK), donc ils  doivent déjà être supprimés avant qu'on puisse supprimer ceux-ci.
-        for groupe in db.query(Groupe).all():
+        for groupe in db.scalars(select(Groupe)).all():
             db.delete(groupe)
-        for canvas in db.query(Canvas).all():
+        for canvas in db.scalars(select(Canvas)).all():
             db.delete(canvas)
 
         db.commit()
