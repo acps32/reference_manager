@@ -17,6 +17,13 @@ Projet de fin de formation (Full Stack Python Developer), échéance le 25 septe
 - Chemins de fichiers (base SQLite, dossier de stockage) toujours construits en absolu via `Path(__file__).resolve().parent...`, jamais en relatif nu, sinon le résultat dépend du dossier depuis lequel `uvicorn` est lancé.
 - Live Server (extension VS Code) surveille tout le dossier du projet par défaut : chaque écriture dans `backend/database.db` (donc chaque `PATCH` de position) déclenche un rechargement complet du navigateur. `liveServer.settings.ignoreFiles` (essayé dans `.vscode/settings.json`) ne règle PAS ça — ce réglage choisit quelles pages reçoivent le script de rechargement, pas ce qui déclenche un rechargement. Contournement actuel : ouvrir `frontend/index.html` directement dans le navigateur (pas via Live Server), `Ctrl+R` manuel quand besoin de recharger.
 
+## Conventions de code
+
+- **Identifiants en anglais** (variables, fonctions, constantes), et bonnes pratiques standard du langage.
+- **Exception assumée : le vocabulaire métier reste en français** (`chemin_fichier`, `nom_original`, `contenu`, `Groupe`, `Texte`). La règle est donc : domaine métier en français, code technique en anglais. Ce mélange se défend tant qu'il suit cette règle ; ce qui ne se défend pas, c'est un mélange sans règle. Renommage écarté le 26 septembre : il toucherait le modèle, les routes, le sérialiseur et le frontend à deux jours de la soutenance.
+- **Commentaires : une ligne, deux au maximum quand c'est vraiment nécessaire.** En français, sur des lignes longues plutôt qu'en bloc étroit de quatre ou cinq lignes courtes. Une explication qui ne tient pas en deux lignes va dans `docs/`, pas dans le code.
+- **100 lignes visées par fichier, 150 maximum** (détail dans `docs/Decisions.md`).
+
 ## Décisions d'architecture à respecter
 
 - Backend API JSON pur, jamais de HTML généré côté serveur (contrainte gardée pour une éventuelle migration future vers un plugin Obsidian, hors scope actuel).

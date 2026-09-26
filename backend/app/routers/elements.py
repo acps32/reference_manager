@@ -8,10 +8,8 @@ from ..models import Element, Image, Texte
 router = APIRouter()
 
 
-# Un seul sérialiseur pour tous les types d'Element : les champs communs
-# viennent de la table "elements", et on ajoute les champs propres au type
-# réel de l'objet (Image ou Texte), reconstruit automatiquement par
-# l'héritage polymorphique de SQLAlchemy.
+# Un seul sérialiseur pour tous les types d'Element : les champs communs viennent de la table "elements", et on ajoute les champs propres au type
+# réel de l'objet (Image ou Texte), reconstruit automatiquement par l'héritage polymorphique de SQLAlchemy.
 def element_to_dict(element: Element) -> dict:
     base = {
         "id": element.id,
@@ -36,19 +34,31 @@ def element_to_dict(element: Element) -> dict:
 
 
 @router.get("/elements")
-def list_elements(db: Session = Depends(get_db)):
-    # Héritage à tables jointes : sans with_polymorphic, SQLAlchemy ne lit que
-    # la table "elements", puis repart chercher chaque ligne fille (images,
-    # textes) une par une au moment où element_to_dict() y accède - soit 1 + N
-    # requêtes. Le "*" demande la jointure de toutes les sous-classes dès le
-    # départ. Mesuré sur 1000 éléments : 1001 requêtes / 634 ms -> 1 / 31 ms.
-    tous_types = with_polymorphic(Element, "*")
+def list_elements(
+    # Rectangle de la vue en coordonnées monde, facultatif : les quatre ensemble, ou aucun.
+    x: float | None = None,
+    y: float | None = None,
+    width: float | None = None,
+    height: float | None = None,
+    db: Session = Depends(get_db),
+):
+    # Sans ça, element_to_dict() déclenche un SELECT par ligne fille : le N+1 de l'héritage à tables jointes.
+    # Mesuré sur 1000 éléments : 1001 requêtes / 634 ms -> 1 requête / 31 ms.
+    all_element_types = with_polymorphic(Element, "*")
 
-    # Les éléments supprimés (visible=False) ne sont pas renvoyés : les laisser
-    # passer revenait à les faire télécharger et décoder par le navigateur à
-    # chaque chargement de page, pour ne jamais les afficher.
-    elements = db.query(tous_types).filter(Element.visible.is_(True)).all()
-    return [element_to_dict(element) for element in elements]
+    # visible=False : les envoyer ferait télécharger et décoder au navigateur des images jamais affichées.
+    query = db.query(all_element_types).filter(Element.visible.is_(True))
+
+    if None not in (x, y, width, height):
+        # Même test de chevauchement que getElementsInRect (canvas.js), mais calculé par SQLite sur chaque ligne.
+        query = query.filter(
+            Element.x < x + width,
+            Element.x + Element.width > x,
+            Element.y < y + height,
+            Element.y + Element.height > y,
+        )
+
+    return [element_to_dict(element) for element in query.all()]
 
 
 class ElementUpdate(BaseModel):
