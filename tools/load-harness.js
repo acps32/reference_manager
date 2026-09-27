@@ -100,6 +100,16 @@ const check = (label, value, expected) =>
     console.log("--- chargement par vue ---");
     await evalIn("loadViewport()");
     const total = evalIn("boardSummary.count");
+
+    // Le board peut n'avoir aucun element pres de l'origine (board de presentation : slides a
+    // gauche) : on recentre la camera sur un element reel, sinon il n'y a rien a mesurer.
+    if (total > 0 && evalIn("loadedElements.length") === 0) {
+        const anchor = (await (await fetch(`${API}/elements`)).json())[0];
+        evalIn(`zoom = 1; offsetX = ${960 - anchor.x}; offsetY = ${540 - anchor.y}; loadedElements = [];`);
+        await evalIn("loadViewport()");
+        console.log("(camera recentree : aucun element pres de l'origine)");
+    }
+
     const first = evalIn("loadedElements.length");
     check("Total en base", total);
     check("Charges au 1er appel", first, total > first ? "(et non le total)" : "");
@@ -115,7 +125,7 @@ const check = (label, value, expected) =>
     }
 
     // Petit deplacement : a l'interieur de la marge de conservation, rien ne doit etre libere.
-    evalIn("globalThis.__first = loadedElements[0]; offsetX = -500; offsetY = -500;");
+    evalIn("globalThis.__first = loadedElements[0]; offsetX -= 500; offsetY -= 500;");
     await evalIn("loadViewport()");
     check("Apres un petit deplacement", evalIn("loadedElements.length"), `(avant : ${first})`);
     check("Le 1er objet est conserve", evalIn("loadedElements.includes(globalThis.__first)"), "(references preservees)");
@@ -125,7 +135,7 @@ const check = (label, value, expected) =>
     console.log("\n--- limitation de frequence ---");
     const before = requestCount;
     for (let i = 0; i < 300; i++) {
-        evalIn(`offsetX = ${-500 - i}; offsetY = -500;`);
+        evalIn("offsetX -= 1");
         evalIn("scheduleViewportLoad()");
     }
     check("Requetes apres 300 mousemove", requestCount - before, "(doit etre 0)");
@@ -133,23 +143,23 @@ const check = (label, value, expected) =>
     check("Requetes 500 ms plus tard", requestCount - before, "(elements + agregat, au lieu de 300)");
 
     console.log("\n--- dechargement ---");
-    evalIn("offsetX = 0; offsetY = 0; selectedElements = new Set(); loadedElements = [];");
+    evalIn("selectedElements = new Set(); loadedElements = [];");
     await evalIn("loadViewport()");
     const atOrigin = evalIn("loadedElements.length");
-    check("Retour a l'origine", atOrigin);
+    check("Charges avant le saut", atOrigin);
 
     // __pinned est protege par la selection, __doomed ne l'est pas : il doit etre libere.
     evalIn("globalThis.__pinned = loadedElements[0];");
     evalIn("globalThis.__doomed = loadedElements.find(e => e.image && e !== loadedElements[0]);");
-    evalIn("selectedElements = new Set([globalThis.__pinned]); offsetX = -20000; offsetY = -20000;");
+    evalIn("selectedElements = new Set([globalThis.__pinned]); offsetX -= 40000; offsetY -= 40000;");
     await evalIn("loadViewport()");
-    check("Apres un saut de 20000 px", evalIn("loadedElements.length"), `(et non ${atOrigin} + les nouveaux)`);
+    check("Apres un saut de 40000 px", evalIn("loadedElements.length"), `(et non ${atOrigin} + les nouveaux)`);
     check("L'element selectionne survit", evalIn("loadedElements.includes(globalThis.__pinned)"));
     check("Un element non protege est libere", evalIn("!loadedElements.includes(globalThis.__doomed)"));
     check("Son image est liberee", evalIn("globalThis.__doomed.image.src === ''"));
 
     console.log("\n--- cadrage et compteur ---");
-    evalIn("offsetX = 0; offsetY = 0; selectedElements = new Set(); zoomToFit();");
+    evalIn("selectedElements = new Set(); zoomToFit();");
     const view = evalIn("inflatedViewport(0)");
     const box = evalIn("boardSummary");
     check("Apres zoomToFit, la vue couvre tout",

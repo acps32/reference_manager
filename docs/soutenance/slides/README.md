@@ -18,6 +18,8 @@ python reset.py
 python ../docs/soutenance/slides/import_slides.py
 ```
 
+`import_slides.py` a besoin de `httpx`, qui n'est pas une dépendance de l'application : `pip install httpx` si le script s'arrête sur un `ModuleNotFoundError`.
+
 `reset.py` efface aussi les slides : ces deux commandes vont toujours ensemble. Si `slides.html` a changé, lancer `export_slides.py` avant l'import.
 
 **Vérifier le thème avant de commencer.** L'app suit le réglage du navigateur : sur une autre machine, elle peut démarrer en sombre. Panneau ⋮, « Mode sombre » décoché.

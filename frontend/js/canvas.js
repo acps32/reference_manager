@@ -14,6 +14,7 @@ let zoom = 1;
 let loadedElements = [];
 
 const GRID_SIZE = 50; // espacement de la grille, en unités du monde
+const MIN_GRID_STEP = 6; // en pixels écran : en dessous, la grille est masquée (voir drawGrid)
 let gridVisible = true; // piloté par le panneau du canevas
 
 // Un <canvas> ne connaît pas le CSS : ses couleurs ne peuvent pas s'écrire en
@@ -174,6 +175,8 @@ function drawGrid() {
     if (!gridVisible) return;
 
     const step = GRID_SIZE * zoom;
+    // Sous quelques pixels d'écart, la grille n'informe plus : elle grise uniformément le fond.
+    if (step < MIN_GRID_STEP) return;
     // Modulo par step : les lignes restent alignées sur la grille du monde quand on pan, au lieu de repartir du coin de l'écran à chaque fois.
     const startX = offsetX % step;
     const startY = offsetY % step;

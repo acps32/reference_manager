@@ -3,7 +3,7 @@
 // Tout ce qui porte sur la vue plutôt que sur la sélection : zoom, import,
 // et le panneau ⋮ qui regroupe les réglages globaux du canevas.
 
-const MIN_ZOOM = 0.1;
+const MIN_ZOOM = 0.02; // assez bas pour que zoomToFit cadre un board très allongé sans être borné
 const MAX_ZOOM = 5;
 
 // Cadre le zoom/pan pour que tout le board tienne à l'écran. Les limites viennent de boardSummary
