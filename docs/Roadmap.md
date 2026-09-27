@@ -48,10 +48,12 @@ Réorientation assumée du 24 septembre : la consigne étant d'avoir un projet *
 - [x] Import d'images avec coordonnées modifiables
 - [x] Transformations basiques (translation, mise à l'échelle, symétrie)
 - [x] Sélection multiple
-- [ ] **Chargement dynamique des images selon le viewport**
+- [x] **Chargement dynamique des images selon le viewport**
 
 ## Ce qui reste, et pourquoi
 
-Le chargement par viewport est le point identifié dès le départ comme le plus risqué, et il reste non implémenté. `Optimisations.md` en donne l'analyse complète : les problèmes chiffrés (une image 4K occupe ~33 Mo en mémoire une fois décodée, indépendamment du poids du fichier), les leviers classés, et l'ordre dans lequel les traiter. Le travail restant est cadré, pas seulement constaté.
+Le chargement par viewport était le point identifié dès le départ comme le plus risqué ; il est fait depuis le 26 septembre (filtre SQL, envoi de la vue réelle, throttling, déchargement mémoire). `Optimisations.md` en garde l'analyse complète et les chiffres avant/après.
 
-Voir `Decisions.md` pour la justification des choix techniques, `Backlog.md` pour le détail des tickets.
+Le reste du travail identifié (tests automatisés, LOD, modules ES, groupes, multi-canevas...) est volontairement laissé pour l'après-soutenance : voir `Backlog.md`, seule source de vérité sur ce qui est fait, prévu, ou assumé non fait.
+
+Voir `Decisions.md` pour la justification des choix techniques.

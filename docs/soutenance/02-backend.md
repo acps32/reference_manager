@@ -91,7 +91,7 @@ Si on te demande ce qu'est l'injection de dépendances : c'est ça. La route dé
 
 `Base.metadata.create_all(bind=engine)` crée les tables manquantes au démarrage. Pas de migrations (pas d'Alembic) — voir fiche 06 pour la réponse à préparer.
 
-CORS ouvert à `*` : frontend et backend sont sur des ports différents en développement. C'est acceptable **parce que l'application est locale et jamais exposée**, et c'est écrit dans le code.
+CORS (_Cross-Origin Resource Sharing_, ou partage de ressources entre origines multiples) ouvert à `*` : frontend et backend sont sur des ports différents en développement. C'est acceptable **parce que l'application est locale et jamais exposée**, et c'est écrit dans le code.
 
 `app.mount("/storage", StaticFiles(...))` sert les fichiers images. C'est la seule chose non-JSON que renvoie le backend.
 

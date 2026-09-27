@@ -1,3 +1,5 @@
+from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -51,6 +53,8 @@ def list_elements(
     statement = select(all_element_types).where(Element.visible.is_(True))
 
     if None not in (x, y, width, height):
+        # Pyright ne déduit pas la non-nullité des 4 variables depuis ce test groupé : cast() le lui affirme sans rien changer à l'exécution.
+        x, y, width, height = cast(tuple[float, float, float, float], (x, y, width, height))
         # Même test de chevauchement que getElementsInRect (canvas.js), mais calculé par SQLite sur chaque ligne.
         statement = statement.where(
             Element.x < x + width,

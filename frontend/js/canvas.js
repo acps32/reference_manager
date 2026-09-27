@@ -179,7 +179,7 @@ function drawGrid() {
     const startY = offsetY % step;
 
     ctx.strokeStyle = THEME.grid;
-    ctx.lineWidth = 0.5; // trait fin : 1 faisait plein pixel écran (donc plus épais que nécessaire vu le faible contraste voulu)
+    ctx.lineWidth = 0.5; // Taille du trait
     ctx.beginPath();
 
     for (let x = startX; x < width; x += step) {
