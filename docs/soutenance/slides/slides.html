@@ -415,26 +415,26 @@ kbd { display: inline-block; padding: 1px 10px; border: 1.5px solid var(--line);
 <section class="slide">
     <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
     <p class="kicker"><span class="num">04</span> · Le bilan</p>
-    <h1>Choisir de ne pas faire</h1>
+    <h1>Ce qui marche aujourd'hui</h1>
     <div class="block cards3" style="left:150px;top:350px;width:1660px">
-        <article class="card">
-            <h3>Les groupes</h3>
-            <span class="tag">codés, puis retirés</span>
-            <p>Une première version se déplaçait d'un bloc, comme sur Figma. Le bon modèle est un cadre visuel, comme sur Miro. Spécifiés de GRP-01 à GRP-07.</p>
+        <article class="card accent">
+            <h3>Le MVP est complet</h3>
+            <span class="tag">5 / 5</span>
+            <p>Les cinq fonctionnalités prévues au départ sont faites, chargement par écran compris.</p>
         </article>
         <article class="card">
-            <h3>Le culling</h3>
-            <span class="tag">écarté après mesure</span>
-            <p>Ne pas dessiner ce qui est hors de l'écran. Le chargement par vue ne laissait presque plus rien à écarter&nbsp;: aucun gain mesurable.</p>
+            <h3>Fluide à <span class="nw">1 000</span> images</h3>
+            <span class="tag">mesuré</span>
+            <p>84 images chargées au démarrage au lieu de <span class="nw">1 000</span>, et un serveur qui répond 10 fois plus vite.</p>
         </article>
         <article class="card">
-            <h3>Le menu radial</h3>
-            <span class="tag">construit, puis retiré</span>
-            <p>Plus original, mais plus difficile à découvrir que le clic droit habituel.</p>
+            <h3>Documenté</h3>
+            <span class="tag">du début à la fin</span>
+            <p>Décisions, feuille de route, backlog et mesures, tenus à jour tout au long du projet.</p>
         </article>
     </div>
-    <p class="block quote" style="left:150px;top:880px">«&nbsp;Choisir de ne pas faire, après mesure, vaut mieux que faire pour cocher.&nbsp;»</p>
-    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Tout est noté dans le backlog, y compris ce qui est abandonné</span></div>
+    <p class="postit" style="left:1250px;top:790px;width:520px">Et cette présentation tourne dans l'outil lui-même.</p>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Le détail de chaque point est dans la documentation du projet</span></div>
 </section>
 
 <section class="slide">
@@ -442,18 +442,18 @@ kbd { display: inline-block; padding: 1px 10px; border: 1.5px solid var(--line);
     <p class="kicker"><span class="num">04</span> · Le bilan</p>
     <h1>Et ensuite, dans cet ordre</h1>
     <ol class="block numbered" style="left:150px;top:350px;width:1000px;gap:24px">
-        <li><span class="step">1</span><p><b>Les tests automatisés</b><span class="what">ma dette principale&nbsp;: sans eux, tout le reste devient risqué</span></p></li>
+        <li><span class="step">1</span><p><b>Les tests automatisés</b><span class="what">la base pour faire évoluer le reste en toute sécurité</span></p></li>
         <li><span class="step">2</span><p><b>Les vignettes (LOD)</b><span class="what">de ~60 à plus de <span class="nw">1 000</span> images 4K</span></p></li>
-        <li><span class="step">3</span><p><b>Le code JavaScript en modules</b><span class="what">moins de bugs, et c'est le prérequis du plugin Obsidian</span></p></li>
+        <li><span class="step">3</span><p><b>Le code JavaScript en modules</b><span class="what">chaque fichier dit de quoi il dépend&nbsp;: le prérequis du plugin Obsidian</span></p></li>
         <li><span class="step">4</span><p><b>Les groupes</b><span class="what">déjà spécifiés, il reste à les coder</span></p></li>
         <li><span class="step">5</span><p><b>Plusieurs boards</b><span class="what">la base est prête, il manque l'interface</span></p></li>
     </ol>
     <aside class="block card" style="left:1250px;top:350px;width:560px">
-        <h3 style="font-size:34px">Faiblesses connues</h3>
-        <ul style="margin-top:20px;display:flex;flex-direction:column;gap:18px;font-size:26px;line-height:1.4;color:var(--ink-dim)">
-            <li>L'extension des fichiers importés vient de leur nom&nbsp;: correctif d'une ligne, connu.</li>
-            <li>Pas d'outil de migration de la base (Alembic).</li>
-            <li>L'ordre d'affichage des éléments n'est pas enregistré.</li>
+        <h3 style="font-size:34px">Ce que ce projet m'a appris</h3>
+        <ul style="margin-top:20px;display:flex;flex-direction:column;gap:18px;font-size:27px;line-height:1.4;color:var(--ink-dim)">
+            <li>Mesurer avant d'optimiser.</li>
+            <li>Garder le serveur et l'interface indépendants.</li>
+            <li>Documenter ses choix au fil de l'eau.</li>
         </ul>
     </aside>
     <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Le détail et le coût de chaque point sont dans la documentation du projet</span></div>
