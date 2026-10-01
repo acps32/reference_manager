@@ -4,7 +4,7 @@
 // Le menu radial, lui, est passé sur un raccourci clavier (voir main.js) : il
 // sert de couche rapide pour les actions fréquentes, pas de porte d'entrée.
 //
-// Rangement par portée (voir docs/Backlog.md) : ce menu ne contient que des
+// Rangement par portée : ce menu ne contient que des
 // actions portant sur la sélection ou sur le canevas. Les préférences
 // globales restent dans le panneau ⋮.
 

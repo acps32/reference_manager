@@ -1,8 +1,8 @@
 // ===== Panneau d'aide (touche ? ou bouton d'en-tête) =====
 //
 // Deux rôles : documenter ce qui existe, et rendre lisible le périmètre visé
-// sans faire croire qu'il est disponible. La section "à venir" reflète
-// docs/Backlog.md - les deux doivent être mis à jour ensemble.
+// sans faire croire qu'il est disponible. La section "à venir" liste
+// ce qui était prévu au moment du gel du projet.
 
 const HELP_SECTIONS = [
     {

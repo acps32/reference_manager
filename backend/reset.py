@@ -1,6 +1,6 @@
 """
-Outil de reset pour les tests de charge (voir docs/Roadmap.md, "tester la
-montée en charge 10 -> 100 -> 1000 images") : vide entièrement la base
+Outil de reset pour les tests de charge (montée en charge 10 -> 100 -> 1000
+images, voir docs/Optimisations.md) : vide entièrement la base
 (elements/images/textes/canvas/groupes) et les fichiers de storage/images/,
 pour repartir d'un état propre avant ou après un test.
 

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Reference Manager — soutenance</title>
+<!--
+    Slides de la soutenance du 28 septembre 2026, présentées dans l'outil lui-même.
+    Sans ancre : aperçu de toutes les slides. Avec #N : la slide N seule, en 1920 × 1080.
+-->
+<style>
+:root {
+    /* Tokens du thème clair de frontend/css/style.css : les slides sont faites dans la matière de l'outil. */
+    --paper: #ffffff;
+    --board: #f7fafc;
+    --line: #c4b9b9;
+    --line-soft: #e2dcdc;
+    --ink: #1a1a1a;
+    --ink-dim: #5f5b5b;
+    --accent: #0e93ff;
+    --accent-ink: #0a6fc2;
+    --panel: #262626;
+    --panel-text: #e3e3e3;
+    --display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --body: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --mono: "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #e9edf0; color: var(--ink); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+body.preview { zoom: 0.5; display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 48px; }
+body.single { overflow: hidden; }
+ul, ol { list-style: none; }
+b, strong { font-weight: 600; }
+.nw { white-space: nowrap; }
+
+/* ===== Gabarit commun ===== */
+
+.slide { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); box-shadow: inset 0 0 0 2px var(--line); }
+.block { position: absolute; }
+
+/* Trois lignes de construction à des endroits fixes : marge de gauche, sous le titre, au-dessus du pied de page. */
+.line { position: absolute; background: var(--line); }
+.line.v { left: 112px; top: 0; bottom: 0; width: 2px; }
+.line.h { left: 0; right: 0; height: 2px; }
+.line.top { top: 300px; }
+.line.bottom { top: 986px; }
+.cross { position: absolute; left: 113px; top: 301px; width: 12px; height: 12px; margin: -5px 0 0 -5px; background: var(--accent); }
+
+.kicker { position: absolute; left: 150px; top: 108px; font: 600 24px/1 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.kicker .num { color: var(--accent-ink); }
+/* Titre sur une seule ligne : il doit tenir au-dessus de la ligne du haut, et à gauche du post-it quand il y en a un. */
+h1 { position: absolute; left: 150px; top: 158px; white-space: nowrap; font: 600 84px/1.05 var(--display); letter-spacing: -0.02em; }
+
+.footer { position: absolute; left: 150px; right: 110px; top: 1014px; display: flex; gap: 36px; font: 400 21px/1 var(--mono); color: var(--ink-dim); }
+.footer .page { color: var(--ink); }
+.footer .end { margin-left: auto; font-family: var(--body); }
+
+.postit {
+    position: absolute;
+    padding: 30px 34px;
+    background: linear-gradient(172deg, #fff4b8, #ffe98c);
+    box-shadow: 0 1px 2px rgba(60, 50, 0, 0.12), 0 14px 22px -12px rgba(80, 64, 0, 0.45);
+    font: 400 29px/1.38 var(--body);
+    transform: rotate(-2deg);
+}
+.postit.corner { left: 1330px; top: 92px; width: 440px; }
+
+.label { display: block; font: 600 21px/1 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.step { display: inline-grid; place-items: center; width: 50px; height: 50px; border: 2px solid var(--line); border-radius: 2px; font: 500 24px/1 var(--mono); color: var(--accent-ink); transform: translateY(-6px); }
+.numbered { display: flex; flex-direction: column; gap: 30px; }
+.numbered li { display: grid; grid-template-columns: 50px 1fr; gap: 26px; align-items: baseline; font-size: 31px; line-height: 1.38; text-wrap: pretty; }
+.numbered .what { display: block; margin-top: 4px; font-size: 26px; color: var(--ink-dim); }
+
+.card { padding: 32px 36px 36px; border: 2px solid var(--line); border-radius: 2px; background: var(--paper); }
+.card h3 { font: 600 38px/1.15 var(--display); }
+.card .sub { margin-top: 16px; font-size: 28px; line-height: 1.4; }
+.card p { margin-top: 14px; font-size: 28px; line-height: 1.4; color: var(--ink-dim); }
+.card.accent { border-color: var(--accent); }
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.tag { display: inline-block; margin-top: 16px; padding: 7px 12px; border: 1.5px solid currentColor; border-radius: 2px; font: 500 19px/1 var(--mono); color: var(--accent-ink); }
+
+.editor { border-radius: 4px; overflow: hidden; background: #1f1f1f; box-shadow: 0 16px 36px -18px rgba(0, 0, 0, 0.45); }
+.editor .tab { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 18px; background: var(--panel); font: 400 19px/1 var(--mono); color: var(--panel-text); }
+.editor .tab span { color: #9a9a9a; }
+.editor img { display: block; width: 100%; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th { padding: 0 24px 16px 0; text-align: left; font: 600 21px/1 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.table td { padding: 19px 28px 19px 0; border-top: 1.5px solid var(--line-soft); font-size: 28px; line-height: 1.35; vertical-align: top; }
+.table td:first-child { font-weight: 600; }
+.table small { margin-left: 10px; font: 400 19px/1 var(--mono); color: var(--ink-dim); }
+
+kbd { display: inline-block; padding: 1px 10px; border: 1.5px solid var(--line); border-radius: 2px; background: #f6f3f3; font: 500 0.8em/1.3 var(--mono); color: var(--ink); }
+
+/* ===== Slides particulières ===== */
+
+.s-infos .line.top { top: 640px; }
+.s-infos .cross { top: 641px; }
+.name { position: absolute; left: 150px; top: 300px; font: 600 150px/1 var(--display); letter-spacing: -0.035em; }
+.role { position: absolute; left: 156px; top: 490px; font: 400 50px/1 var(--display); color: var(--accent-ink); }
+.contacts { position: absolute; left: 150px; top: 710px; display: flex; gap: 110px; font-size: 34px; }
+.contacts .label { margin-bottom: 14px; }
+
+.pitch { font-size: 34px; line-height: 1.4; }
+.mini-board { margin-top: 36px; display: block; }
+
+.statements { display: grid; grid-template-columns: repeat(3, 1fr); gap: 50px; font-size: 30px; line-height: 1.38; }
+.statements p:last-child { font-weight: 600; }
+
+.checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 44px 56px; }
+.checklist li { padding-left: 28px; border-left: 2px solid var(--line); }
+.checklist b { display: block; font: 600 38px/1.1 var(--display); }
+.checklist .detail { display: block; margin-top: 12px; font-size: 29px; line-height: 1.45; color: var(--ink-dim); }
+.keys { white-space: nowrap; }
+.here { display: flex; flex-direction: column; gap: 26px; padding: 34px 38px 38px; border: 2px dashed var(--accent); border-radius: 2px; background: rgba(14, 147, 255, 0.06); font-size: 30px; line-height: 1.4; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.tile { padding: 26px 30px 30px; border: 2px solid var(--line); border-radius: 2px; }
+.tile-label { min-height: 64px; font-size: 24px; line-height: 1.33; color: var(--ink-dim); text-wrap: balance; }
+.tile-before { margin-top: 14px; font: 400 36px/1 var(--display); color: var(--ink-dim); white-space: nowrap; }
+.tile-after { margin-top: 6px; font: 600 86px/1 var(--display); letter-spacing: -0.02em; color: var(--accent); white-space: nowrap; }
+
+.shot { display: block; border: 2px solid var(--line); border-radius: 2px; }
+
+.hero { font: 600 170px/0.9 var(--display); letter-spacing: -0.03em; color: var(--accent); white-space: nowrap; }
+.hero-sub { margin-top: 26px; font-size: 34px; line-height: 1.35; }
+.hero-calc { margin-top: 16px; font: 400 27px/1.3 var(--mono); color: var(--ink-dim); }
+.hero-note { margin-top: 24px; font-size: 27px; line-height: 1.4; color: var(--ink-dim); }
+.bars { display: flex; flex-direction: column; gap: 40px; }
+.bar-label { font: 600 32px/1 var(--display); }
+.bar-line { margin-top: 16px; display: flex; align-items: center; gap: 22px; }
+.bar { height: 54px; border-radius: 0 4px 4px 0; }
+.bar-value { font: 600 30px/1 var(--display); white-space: nowrap; }
+.bar-note { margin-top: 16px; font-size: 26px; color: var(--ink-dim); }
+
+.quote { font-size: 32px; line-height: 1.35; }
+
+.statement { font: 600 64px/1.15 var(--display); letter-spacing: -0.02em; }
+.thanks { font: 600 60px/1 var(--display); color: var(--accent-ink); }
+.contact-lines { display: flex; flex-direction: column; gap: 14px; font: 400 26px/1 var(--mono); color: var(--ink-dim); text-align: right; }
+</style>
+</head>
+<body>
+
+<!-- ============ 1 · PAGE D'INFOS ============ -->
+
+<section class="slide s-infos">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker">Soutenance · 28 septembre 2026</p>
+    <p class="name">Anthony Compas</p>
+    <p class="role">Full Stack Python Developer</p>
+    <div class="contacts">
+        <p><span class="label">Mail</span>compasanthony@gmail.com</p>
+        <p><span class="label">LinkedIn</span>linkedin.com/in/anthony-compas-205875183</p>
+    </div>
+    <p class="postit" style="left:1330px;top:250px;width:440px">Aujourd'hui&nbsp;: <b>Reference Manager</b>, un board pour ranger ses références visuelles.</p>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Reference Manager</span></div>
+</section>
+
+<!-- ============ 01 · LE PROJET ============ -->
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">01</span> · Le projet</p>
+    <h1>Reference Manager</h1>
+    <p class="postit corner">Le besoin&nbsp;: un board qui reste fluide quand il grossit.</p>
+    <div class="block" style="left:150px;top:350px;width:760px">
+        <p class="pitch">Un tableau infini pour ranger ses références visuelles&nbsp;: on y dépose des images, on les place librement, on zoome, on ajoute du texte.</p>
+        <svg class="mini-board" width="760" height="330" viewBox="0 0 760 330" aria-hidden="true">
+            <defs>
+                <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fa3c7"/><stop offset="1" stop-color="#e8b894"/></linearGradient>
+                <linearGradient id="g-portrait" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c7a88b"/><stop offset="1" stop-color="#7a5f4c"/></linearGradient>
+                <linearGradient id="g-forest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3d0bc"/><stop offset="1" stop-color="#58765f"/></linearGradient>
+                <linearGradient id="g-violet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b3a6cc"/><stop offset="1" stop-color="#6c5d84"/></linearGradient>
+                <linearGradient id="g-still" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcc7a2"/><stop offset="1" stop-color="#8a7250"/></linearGradient>
+                <clipPath id="c-portrait"><rect x="305" y="22" width="150" height="200"/></clipPath>
+                <clipPath id="c-forest"><rect x="484" y="40" width="246" height="150"/></clipPath>
+                <clipPath id="c-violet"><rect x="30" y="196" width="180" height="112"/></clipPath>
+            </defs>
+            <rect x="1" y="1" width="758" height="328" fill="#f7fafc" stroke="#c4b9b9" stroke-width="2"/>
+            <rect x="30" y="30" width="250" height="148" fill="url(#g-sky)"/>
+            <circle cx="198" cy="128" r="24" fill="#fbe0b4"/>
+            <polygon points="30,178 30,146 86,122 128,150 184,108 238,146 280,124 280,178" fill="#4a5d70"/>
+            <rect x="305" y="22" width="150" height="200" fill="url(#g-portrait)"/>
+            <g clip-path="url(#c-portrait)"><circle cx="380" cy="96" r="30" fill="#f0d2b6"/><ellipse cx="380" cy="218" rx="68" ry="64" fill="#4a3a30"/></g>
+            <rect x="484" y="40" width="246" height="150" fill="url(#g-forest)"/>
+            <g clip-path="url(#c-forest)" fill="#2f4a3a">
+                <polygon points="496,190 522,104 548,190"/><polygon points="538,190 574,82 610,190"/>
+                <polygon points="598,190 626,120 654,190"/><polygon points="644,190 682,96 720,190"/>
+            </g>
+            <rect x="484" y="40" width="246" height="150" fill="none" stroke="#0e93ff" stroke-width="3"/>
+            <rect x="30" y="196" width="180" height="112" fill="url(#g-violet)"/>
+            <g clip-path="url(#c-violet)"><circle cx="96" cy="246" r="44" fill="#e0d6f0" opacity="0.55"/><circle cx="148" cy="274" r="38" fill="#f3c7dc" opacity="0.45"/></g>
+            <text x="234" y="262" fill="#1a1a1a" font-family="Segoe UI Variable Text, Segoe UI, sans-serif" font-size="22">lumière rasante,</text>
+            <text x="234" y="290" fill="#1a1a1a" font-family="Segoe UI Variable Text, Segoe UI, sans-serif" font-size="22">ombres longues</text>
+            <rect x="484" y="210" width="176" height="100" fill="url(#g-still)"/>
+            <ellipse cx="572" cy="282" rx="54" ry="18" fill="#f1dcb4" opacity="0.7"/>
+            <circle cx="552" cy="254" r="17" fill="#c0644b" opacity="0.85"/>
+        </svg>
+    </div>
+    <div class="block" style="left:1000px;top:350px;width:810px">
+        <span class="label">Pourquoi</span>
+        <ol class="numbered" style="margin-top:30px">
+            <li><span class="step">1</span><p>Je range mes références visuelles dans <b>Obsidian Canvas</b>.</p></li>
+            <li><span class="step">2</span><p>Vers <b>50 images</b>, le canevas devient très lent.</p></li>
+            <li><span class="step">3</span><p>Pour tenir, je fusionnais des images dans Photoshop. Une fois fusionnées, impossible de les déplacer une à une.</p></li>
+        </ol>
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Application web locale&nbsp;: Python pour le serveur, JavaScript pour l'interface</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">01</span> · Le projet</p>
+    <h1>Ce qui existe déjà</h1>
+    <div class="block cards3" style="left:150px;top:350px;width:1660px">
+        <article class="card">
+            <h3>Obsidian Canvas</h3>
+            <p class="sub">Un canevas dans une application de notes.</p>
+            <p>Très lent vers 50 images, dans mon usage.</p>
+        </article>
+        <article class="card">
+            <h3>PureRef</h3>
+            <p class="sub">La référence chez les artistes. Une application installée, au code fermé.</p>
+            <p>Elle peut garder toutes les images en mémoire, en pleine résolution&nbsp;: sa limite, c'est la mémoire de l'ordinateur.</p>
+        </article>
+        <article class="card accent">
+            <h3>Reference Manager</h3>
+            <p class="sub">Une application web locale, au code public.</p>
+            <p>Elle tourne dans un onglet de navigateur, limité à <span class="nw">2 à 4 Go</span>. D'où le choix de ne charger que ce qui est à l'écran.</p>
+        </article>
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Aucun chiffre avancé sur PureRef&nbsp;: je ne l'ai pas mesuré</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">01</span> · Le projet</p>
+    <h1>On ne voit qu'une partie du board</h1>
+    <svg class="block window-figure" style="left:150px;top:350px" width="1660" height="440" viewBox="0 0 1660 440" aria-hidden="true"></svg>
+    <div class="block statements" style="left:150px;top:836px;width:1660px">
+        <p>À l'écran, on voit quelques dizaines d'images.</p>
+        <p>Un outil simple charge quand même tout le board.</p>
+        <p>Mon objectif&nbsp;: rester fluide, avec 50 comme avec <span class="nw">1 000</span> images.</p>
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">La scalabilité&nbsp;: tenir la charge quand le board grossit</span></div>
+</section>
+
+<!-- ============ 02 · L'OUTIL ============ -->
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">02</span> · L'outil</p>
+    <h1>Démo&nbsp;: le board en main</h1>
+    <ul class="block checklist" style="left:150px;top:350px;width:1100px">
+        <li><b>Importer</b><span class="detail">glisser-déposer, bouton, <span class="keys"><kbd>Ctrl</kbd> <kbd>V</kbd></span></span></li>
+        <li><b>Sélectionner</b><span class="detail">clic, <span class="keys"><kbd>Maj</kbd> + clic</span>, rectangle</span></li>
+        <li><b>Transformer</b><span class="detail">déplacer, redimensionner, symétrie</span></li>
+        <li><b>Écrire</b><span class="detail">des textes, modifiables sur place</span></li>
+        <li><b>Annuler</b><span class="detail"><span class="keys"><kbd>Ctrl</kbd> <kbd>Z</kbd></span> et <span class="keys"><kbd>Ctrl</kbd> <kbd>Y</kbd></span></span></li>
+        <li><b>Naviguer</b><span class="detail">zoom sous la souris<br>cadrage général <span class="keys"><kbd>Maj</kbd> <kbd>1</kbd></span></span></li>
+    </ul>
+    <aside class="block here" style="left:1330px;top:350px;width:480px">
+        <svg width="132" height="40" viewBox="0 0 132 40" aria-hidden="true"><path d="M128 20H8M26 4L6 20L26 36" fill="none" stroke="#0e93ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p>La démo se fait ici même&nbsp;: cette slide est une image du board, et les exemples sont juste à côté.</p>
+    </aside>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Tout est dessiné dans une seule zone de dessin&nbsp;: l'élément Canvas</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">02</span> · L'outil</p>
+    <h1>Les technologies, et pourquoi</h1>
+    <table class="block table" style="left:150px;top:350px;width:1660px">
+        <thead><tr><th style="width:22%">Techno</th><th style="width:40%">Son rôle</th><th>Pourquoi ce choix</th></tr></thead>
+        <tbody>
+            <tr><td>Python · FastAPI</td><td>Le serveur&nbsp;: il reçoit les images et répond à l'interface.</td><td>Rapide à écrire, et il vérifie les données tout seul.</td></tr>
+            <tr><td>SQLite</td><td>La base de données&nbsp;: un simple fichier.</td><td>Rien à installer pour une application locale.</td></tr>
+            <tr><td>SQLAlchemy</td><td>Le lien entre le code Python et la base.</td><td>Il gère bien des éléments de types différents&nbsp;: images et textes.</td></tr>
+            <tr><td>Pillow</td><td>Lit la vraie taille des images à l'import.</td><td>Chaque image est posée à sa taille réelle.</td></tr>
+            <tr><td>JavaScript · Canvas</td><td>L'interface&nbsp;: tout le board est dessiné dans une zone de dessin.</td><td>Rapide avec beaucoup d'images, sans framework à ajouter.</td></tr>
+        </tbody>
+    </table>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Le serveur ne renvoie que des données&nbsp;: l'interface pourrait devenir un plugin Obsidian</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">02</span> · L'outil</p>
+    <h1>Tout est un élément</h1>
+    <div class="block" style="left:150px;top:350px;width:620px;height:600px">
+        <svg style="position:absolute;inset:0" width="620" height="600" viewBox="0 0 620 600" aria-hidden="true">
+            <path d="M40 190V520M40 320H90M40 520H90" fill="none" stroke="#c4b9b9" stroke-width="2"/>
+        </svg>
+        <div class="card block" style="left:0;top:0;width:620px;height:190px;padding:24px 28px;border-color:var(--ink-dim)">
+            <h3>Élément</h3>
+            <p style="margin-top:12px;font-size:27px">Tout ce qui est posé sur le board&nbsp;: une position, une taille, visible ou non.</p>
+        </div>
+        <div class="card block" style="left:90px;top:240px;width:530px;height:160px;padding:24px 28px">
+            <h3>Image</h3>
+            <p style="margin-top:12px;font-size:27px">En plus&nbsp;: le fichier, la symétrie.</p>
+        </div>
+        <div class="card block" style="left:90px;top:440px;width:530px;height:160px;padding:24px 28px">
+            <h3>Texte</h3>
+            <p style="margin-top:12px;font-size:27px">En plus&nbsp;: le contenu, la taille du texte.</p>
+        </div>
+    </div>
+    <div class="block editor" style="left:850px;top:350px;width:960px">
+        <div class="tab">models.py <span>backend/app/models</span></div>
+        <img src="screens/models.png" alt="">
+    </div>
+    <p class="postit corner">Canvas et Groupe sont déjà dans la base, sans interface pour l'instant.</p>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Héritage à tables jointes, SQLAlchemy 2.0</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">02</span> · L'outil</p>
+    <h1>L'écran est une caméra</h1>
+    <svg class="block camera-figure" style="left:150px;top:350px" width="800" height="590" viewBox="0 0 800 590" aria-hidden="true"></svg>
+    <ol class="block numbered" style="left:1020px;top:360px;width:790px">
+        <li><span class="step">1</span><p>Le board est une carte. Chaque élément y a une adresse fixe, enregistrée en base. Cette slide, par exemple&nbsp;: <b class="nw self-position"></b>.</p></li>
+        <li><span class="step">2</span><p>L'écran est une caméra au-dessus de la carte&nbsp;: se déplacer la fait glisser, zoomer la rapproche.</p></li>
+        <li><span class="step">3</span><p>Pour afficher un élément, on convertit son adresse en position à l'écran. Pour un clic, on fait l'inverse.</p></li>
+    </ol>
+    <p class="postit corner">Zoom&nbsp;: comme sur Google Maps, le point sous la souris reste sous la souris.</p>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Pour les curieux&nbsp;: position à l'écran = adresse × zoom + décalage</span></div>
+</section>
+
+<!-- ============ 03 · LA PERFORMANCE ============ -->
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">03</span> · La performance</p>
+    <h1>Ne payer que ce qui est à l'écran</h1>
+    <p class="block" style="left:150px;top:330px;font-size:32px;color:var(--ink-dim)">Au départ, chaque ressource payait pour le board entier.</p>
+    <table class="block table" style="left:150px;top:420px;width:1660px">
+        <thead><tr><th style="width:30%">Problème</th><th style="width:36%">Avant</th><th>Objectif</th></tr></thead>
+        <tbody>
+            <tr><td>Requêtes à la base<small>SQL</small></td><td><span class="nw">1 000</span> éléments → beaucoup de requêtes</td><td>1 requête</td></tr>
+            <tr><td>Données envoyées<small>JSON</small></td><td>Tous les éléments</td><td>Seulement ceux proches de la vue</td></tr>
+            <tr><td>Images</td><td>Toutes téléchargées</td><td>Seulement celles nécessaires</td></tr>
+            <tr><td>Mémoire<small>RAM</small></td><td>Toutes les images visitées restent</td><td>Décharger les images éloignées</td></tr>
+            <tr><td>Dessin<small>drawImage()</small></td><td>Beaucoup de dessins à chaque rafraîchissement</td><td>Seulement les éléments chargés</td></tr>
+        </tbody>
+    </table>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Cinq problèmes distincts&nbsp;: en régler un ne règle pas les autres</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">03</span> · La performance</p>
+    <h1>Mesurer, corriger, remesurer</h1>
+    <div class="block tiles" style="left:150px;top:340px;width:1660px">
+        <div class="tile"><p class="tile-label">Images chargées au démarrage</p><p class="tile-before">1 000 →</p><p class="tile-after">84</p></div>
+        <div class="tile"><p class="tile-label">Attente de la réponse du serveur</p><p class="tile-before">~630 ms →</p><p class="tile-after">~65 ms</p></div>
+        <div class="tile"><p class="tile-label">Requêtes pour 300 mouvements de souris</p><p class="tile-before">300 →</p><p class="tile-after">1</p></div>
+        <div class="tile"><p class="tile-label">Éléments gardés en mémoire après un long déplacement</p><p class="tile-before">135 →</p><p class="tile-after">1</p></div>
+    </div>
+    <ol class="block numbered" style="left:150px;top:636px;width:680px;gap:16px">
+        <li><span class="step">1</span><p><b>Mesurer</b><span class="what">un script crée <span class="nw">1 000</span> images de test, je compte et je chronomètre</span></p></li>
+        <li><span class="step">2</span><p><b>Corriger</b><span class="what">une seule chose à la fois</span></p></li>
+        <li><span class="step">3</span><p><b>Remesurer</b><span class="what">le même test, pour comparer</span></p></li>
+    </ol>
+    <div class="block editor" style="left:890px;top:640px;width:920px">
+        <div class="tab">viewport.js <span>frontend/js</span></div>
+        <img src="screens/viewport.png" alt="">
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Tous les chiffres viennent du même test de <span class="nw">1 000</span> images</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">03</span> · La performance</p>
+    <h1>Le test des <span class="nw">1 000</span> images</h1>
+    <img class="block shot" src="screens/board-1000.png" alt="" style="left:150px;top:350px;width:930px">
+    <p class="postit" style="left:700px;top:700px;width:430px">Au démarrage, la barre d'état affiche <b>84 / 1 000</b>&nbsp;: seules les images proches de l'écran sont chargées.</p>
+    <p class="block" style="left:1150px;top:350px;width:660px;font-size:29px;line-height:1.4">Un script crée <span class="nw">1 000</span> images numérotées, rangées en grille. Je sais donc à l'avance combien doivent apparaître à l'écran.</p>
+    <div class="block editor" style="left:1150px;top:520px;width:660px">
+        <div class="tab">seed.py <span>backend</span></div>
+        <img src="screens/seed.png" alt="">
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end"><span class="nw">1 000</span> images créées en moins de 4 secondes, en un seul enregistrement</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">03</span> · La performance</p>
+    <h1>Le mur suivant&nbsp;: la mémoire</h1>
+    <div class="block" style="left:150px;top:350px;width:700px">
+        <p class="hero">33 Mo</p>
+        <p class="hero-sub">pour une seule image 4K ouverte en mémoire</p>
+        <p class="hero-calc">3 840 × 2 160 pixels × 4 octets</p>
+        <p class="hero-note">Que le fichier pèse 2 Mo ou 500 Ko, l'image prend la même place une fois ouverte.</p>
+    </div>
+    <div class="block bars" style="left:950px;top:360px;width:860px">
+        <p style="font-size:29px;color:var(--ink-dim)">Dans les ~2 Go de mémoire d'un onglet</p>
+        <!-- Même échelle pour les deux barres : 460 px pour 1 000 images, donc ~28 px pour 60. -->
+        <div>
+            <p class="bar-label">Sans vignettes</p>
+            <div class="bar-line"><div class="bar" style="width:28px;background:#b9b0b0"></div><p class="bar-value">~60 images 4K</p></div>
+        </div>
+        <div>
+            <p class="bar-label">Avec vignettes (LOD)</p>
+            <div class="bar-line"><div class="bar" style="width:460px;background:var(--accent)"></div><p class="bar-value">1 000+</p></div>
+            <p class="bar-note">vignettes de 256 px&nbsp;: 262 Ko chacune, 125 fois moins</p>
+        </div>
+        <p style="font-size:29px;font-weight:600">Les vignettes sont chiffrées, pas encore faites.</p>
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Mes images de test font 200 × 200 px&nbsp;: elles ne mesurent pas ce mur-là</span></div>
+</section>
+
+<!-- ============ 04 · LE BILAN ============ -->
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">04</span> · Le bilan</p>
+    <h1>Ce qui marche aujourd'hui</h1>
+    <div class="block cards3" style="left:150px;top:350px;width:1660px">
+        <article class="card accent">
+            <h3>Le MVP est complet</h3>
+            <span class="tag">5 / 5</span>
+            <p>Les cinq fonctionnalités prévues au départ sont faites, chargement par écran compris.</p>
+        </article>
+        <article class="card">
+            <h3>Fluide à <span class="nw">1 000</span> images</h3>
+            <span class="tag">mesuré</span>
+            <p>84 images chargées au démarrage au lieu de <span class="nw">1 000</span>, et un serveur qui répond 10 fois plus vite.</p>
+        </article>
+        <article class="card">
+            <h3>Documenté</h3>
+            <span class="tag">du début à la fin</span>
+            <p>Décisions, feuille de route, backlog et mesures, tenus à jour tout au long du projet.</p>
+        </article>
+    </div>
+    <p class="postit" style="left:1250px;top:790px;width:520px">Et cette présentation tourne dans l'outil lui-même.</p>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Le détail de chaque point est dans la documentation du projet</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">04</span> · Le bilan</p>
+    <h1>Et ensuite, dans cet ordre</h1>
+    <ol class="block numbered" style="left:150px;top:350px;width:1000px;gap:24px">
+        <li><span class="step">1</span><p><b>Les tests automatisés</b><span class="what">la base pour faire évoluer le reste en toute sécurité</span></p></li>
+        <li><span class="step">2</span><p><b>Les vignettes (LOD)</b><span class="what">de ~60 à plus de <span class="nw">1 000</span> images 4K</span></p></li>
+        <li><span class="step">3</span><p><b>Le code JavaScript en modules</b><span class="what">chaque fichier dit de quoi il dépend&nbsp;: le prérequis du plugin Obsidian</span></p></li>
+        <li><span class="step">4</span><p><b>Les groupes</b><span class="what">déjà spécifiés, il reste à les coder</span></p></li>
+        <li><span class="step">5</span><p><b>Plusieurs boards</b><span class="what">la base est prête, il manque l'interface</span></p></li>
+    </ol>
+    <aside class="block card" style="left:1250px;top:350px;width:560px">
+        <h3 style="font-size:34px">Ce que ce projet m'a appris</h3>
+        <ul style="margin-top:20px;display:flex;flex-direction:column;gap:18px;font-size:27px;line-height:1.4;color:var(--ink-dim)">
+            <li>Mesurer avant d'optimiser.</li>
+            <li>Garder le serveur et l'interface indépendants.</li>
+            <li>Documenter ses choix au fil de l'eau.</li>
+        </ul>
+    </aside>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Le détail et le coût de chaque point sont dans la documentation du projet</span></div>
+</section>
+
+<section class="slide">
+    <i class="line v"></i><i class="line h top"></i><i class="line h bottom"></i><i class="cross"></i>
+    <p class="kicker"><span class="num">04</span> · Le bilan</p>
+    <h1>Pour conclure</h1>
+    <div class="block" style="left:150px;top:360px;width:1500px">
+        <p class="statement">Reference Manager reste fluide quand le board grossit.</p>
+        <p style="margin-top:30px;font-size:34px;line-height:1.4;color:var(--ink-dim)">Pour y arriver, j'ai mesuré, corrigé, puis remesuré, et j'ai noté ce que j'ai choisi de ne pas faire.</p>
+    </div>
+    <p class="block thanks" style="left:150px;top:840px">Merci. Des questions&nbsp;?</p>
+    <div class="block contact-lines" style="right:110px;top:820px">
+        <span>compasanthony@gmail.com</span>
+        <span>linkedin.com/in/anthony-compas-205875183</span>
+        <span>github.com/acps32/reference_manager</span>
+    </div>
+    <div class="footer"><span class="page"></span><span class="where"></span><span class="end">Anthony Compas · Full Stack Python Developer</span></div>
+</section>
+
+<script>
+// Position de chaque slide sur le board de la soutenance : les slides en colonne, dans l'ordre, à gauche de la grille du seed.
+const ORIGIN_X = -9840;
+const ORIGIN_Y = 0;
+const COLUMNS = 1;
+const PITCH_X = 2160;
+const PITCH_Y = 1320;
+
+const slides = [...document.querySelectorAll(".slide")];
+const formatNumber = (value) => new Intl.NumberFormat("fr-FR").format(value).replace("-", "−");
+
+slides.forEach((slide, index) => {
+    const x = ORIGIN_X + (index % COLUMNS) * PITCH_X;
+    const y = ORIGIN_Y + Math.floor(index / COLUMNS) * PITCH_Y;
+    slide.querySelector(".page").textContent = String(index + 1).padStart(2, "0");
+    slide.querySelector(".where").textContent = `x ${formatNumber(x)} · y ${formatNumber(y)}`;
+    const self = slide.querySelector(".self-position");
+    if (self) self.textContent = `x ${formatNumber(x)}, y ${formatNumber(y)}`;
+});
+
+// Générateur pseudo-aléatoire à graine fixe : la même disposition à chaque export.
+function seededRandom(seed) {
+    return () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+const MUTED = ["#9fb4c7", "#d3b89c", "#a7b89a", "#c2a9bd", "#b8a58c", "#8fa7a0", "#d6c7b0", "#a39ab8", "#c9a79a"];
+
+// Un board rempli de cartes, estompées hors du cadre de l'écran et nettes dedans.
+function drawWindowFigure(svg, width, height, frame, seed) {
+    const random = seededRandom(seed);
+    let cards = "";
+    for (let y = 22; y < height - 60; ) {
+        const rowHeight = 64 + Math.floor(random() * 56);
+        for (let x = 22; x < width - 60; ) {
+            const cardWidth = 64 + Math.floor(random() * 110);
+            const cardHeight = rowHeight - Math.floor(random() * 22);
+            if (x + cardWidth > width - 22) break;
+            cards += `<rect x="${x}" y="${y}" width="${cardWidth}" height="${cardHeight}" rx="2" fill="${MUTED[Math.floor(random() * MUTED.length)]}"/>`;
+            x += cardWidth + 16;
+        }
+        y += rowHeight + 16;
+    }
+    const id = `frame-${seed}`;
+    svg.innerHTML = `
+        <defs><clipPath id="${id}"><rect x="${frame.x}" y="${frame.y}" width="${frame.width}" height="${frame.height}"/></clipPath></defs>
+        <rect x="1" y="1" width="${width - 2}" height="${height - 2}" fill="#f7fafc" stroke="#c4b9b9" stroke-width="2"/>
+        <g opacity="0.28">${cards}</g>
+        <g clip-path="url(#${id})">${cards}</g>
+        <rect x="${frame.x}" y="${frame.y}" width="${frame.width}" height="${frame.height}" fill="none" stroke="#0e93ff" stroke-width="4"/>
+        <rect x="${frame.x}" y="${frame.y - 40}" width="118" height="34" fill="#0e93ff"/>
+        <text x="${frame.x + 14}" y="${frame.y - 16}" fill="#ffffff" font-family="Segoe UI Variable Text, Segoe UI, sans-serif" font-size="21" font-weight="600">l'écran</text>`;
+}
+
+drawWindowFigure(document.querySelector(".window-figure"), 1660, 440, { x: 610, y: 118, width: 460, height: 260 }, 7);
+drawWindowFigure(document.querySelector(".camera-figure"), 800, 590, { x: 200, y: 170, width: 400, height: 225 }, 21);
+
+// Slide 8 : l'adresse fixe d'une carte, et les deux gestes de la caméra.
+document.querySelector(".camera-figure").insertAdjacentHTML("beforeend", `
+    <g font-family="Cascadia Code, Consolas, monospace" font-size="19" fill="#1a1a1a">
+        <path d="M200 440H600M214 430L200 440L214 450M586 430L600 440L586 450" fill="none" stroke="#0a6fc2" stroke-width="3"/>
+        <text x="400" y="478" text-anchor="middle" fill="#0a6fc2" font-family="Segoe UI Variable Text, Segoe UI, sans-serif" font-size="22" font-weight="600">se déplacer&#160;: la caméra glisse</text>
+        <path d="M612 158L656 114M642 114H656V128M626 158H612V144" fill="none" stroke="#0a6fc2" stroke-width="3"/>
+        <text x="664" y="110" fill="#0a6fc2" font-family="Segoe UI Variable Text, Segoe UI, sans-serif" font-size="22" font-weight="600">zoomer</text>
+    </g>`);
+
+// #N : une seule slide, à la taille réelle, pour la capture. Sans ancre : toutes, en aperçu réduit.
+const requested = Number(location.hash.slice(1));
+if (requested >= 1 && requested <= slides.length) {
+    slides.forEach((slide, index) => { if (index + 1 !== requested) slide.remove(); });
+    document.body.classList.add("single");
+} else {
+    document.body.classList.add("preview");
+}
+window.addEventListener("hashchange", () => location.reload());
+</script>
+</body>
+</html>

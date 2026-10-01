@@ -4,7 +4,7 @@ Analyse du 22 septembre, suite à la question "qu'est-ce qui se passe si je cont
 
 ## 1. Transfert de données (backend → frontend)
 
-- **Filtrage par viewport** — déjà identifié comme le point critique du projet (voir `Decisions.md`). Requête SQL `WHERE` sur x/y/width/height côté backend.
+- **Filtrage par viewport** — déjà identifié comme le point critique du projet. Requête SQL `WHERE` sur x/y/width/height côté backend.
 - **Index spatial** — une fois le `WHERE` en place, sans index SQLite scanne toute la table à chaque requête. Un index B-tree classique optimise mal une recherche 2D. La bonne réponse est un **index R-Tree**, natif à SQLite (`CREATE VIRTUAL TABLE ... USING rtree`), conçu spécifiquement pour "quels rectangles chevauchent ce rectangle".
 - **Chargement incrémental** — ne pas redemander ce qui est déjà chargé quand le viewport bouge légèrement.
 - **Debounce des requêtes** — `mousemove` peut se déclencher ~1000 fois/seconde ; sans throttling, brancher le viewport dessus veut dire potentiellement 1000 requêtes HTTP par seconde de pan.

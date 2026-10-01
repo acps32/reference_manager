@@ -2,14 +2,13 @@
 __pycache__/
 *.pyc
 
-# Local Claude Code settings (machine-specific)
+# Local Claude Code settings and instructions (machine-specific)
 .claude/
+CLAUDE.md
 
 # Local SQLite database (generated at runtime)
 *.db
 
 # User-uploaded images: local vault content, not source
-proof_of_concept/storage/images/*
-!proof_of_concept/storage/images/.gitkeep
 backend/storage/images/*
 !backend/storage/images/.gitkeep

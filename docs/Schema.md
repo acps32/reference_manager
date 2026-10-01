@@ -63,4 +63,4 @@ Un `ELEMENT` n'a jamais à la fois une ligne `IMAGE` et une ligne `TEXTE` associ
 
 `font_size` est stocké explicitement et la hauteur du cadre en découle : avec le retour à la ligne, le nombre de lignes dépend de la police et de la largeur, donc la hauteur ne peut pas déterminer la police.
 
-État au 27 septembre : `ELEMENT`, `IMAGE` et `TEXTE` sont implémentés de bout en bout (modèle, routes, interface). `CANVAS` existe avec un seul enregistrement et sans interface de sélection ; `GROUPE` est modélisé mais sans route ni interface (voir `Backlog.md`, `GRP-01` à `GRP-07`).
+État au 27 septembre : `ELEMENT`, `IMAGE` et `TEXTE` sont implémentés de bout en bout (modèle, routes, interface). `CANVAS` existe avec un seul enregistrement et sans interface de sélection ; `GROUPE` est modélisé mais sans route ni interface (spécifié mais non implémenté).

@@ -1,7 +1,6 @@
 /* Jeu de tokens : toute valeur de couleur/rayon/ombre/police utilisée plus
-   d'une fois est un token, ici, jamais répétée en dur ailleurs (voir
-   Decisions.md, "Système de design").
-   Direction retenue le 25 sept après exploration dans design-lab.html :
+   d'une fois est un token, ici, jamais répétée en dur ailleurs.
+   Direction retenue le 25 sept après exploration dans un gabarit isolé :
    chrome sombre constant (menus, panneaux), canevas qui bascule clair/sombre
    (voir [data-theme="dark"] plus bas) - un panneau flottant sombre reste
    lisible sur les deux fonds sans bordure/ombre appuyée, c'est la raison du
@@ -49,7 +48,7 @@
 
 /* Mode sombre : uniquement les tokens propres au canevas et l'ombre qui en
    dépend visuellement. Le chrome (panneaux/menus) ne change pas - c'est la
-   direction retenue, voir Decisions.md. */
+   direction retenue. */
 :root[data-theme="dark"] {
     --canvas-bg: #191a1b;
     --canvas-grid: #474141;

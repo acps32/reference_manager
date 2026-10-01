@@ -22,8 +22,8 @@ STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 def get_or_create_canvas(db: Session) -> Canvas:
     """
-    Le MVP n'a qu'un seul canevas, pas d'interface de sélection (voir
-    docs/Decisions.md). On récupère le premier enregistrement, ou on le
+    Le MVP n'a qu'un seul canevas, pas d'interface de sélection.
+    On récupère le premier enregistrement, ou on le
     crée s'il n'existe pas encore (tout premier appel à l'API).
     """
     canvas = db.scalars(select(Canvas)).first()

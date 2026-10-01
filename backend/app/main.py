@@ -31,7 +31,7 @@ app.include_router(elements.router)
 # Chemin absolu (indépendant du dossier de lancement d'uvicorn) : voir
 # routers/images.py pour le même besoin. Actuellement un seul dossier fixe
 # pour tout le backend ; deviendra une route dynamique lisant le chemin en
-# base par canevas quand le multi-canevas sera implémenté (voir docs/Decisions.md).
+# base par canevas si le multi-canevas est implémenté.
 BASE_DIR = Path(__file__).resolve().parent.parent
 STORAGE_DIR = BASE_DIR / "storage"
 

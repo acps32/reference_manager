@@ -85,7 +85,7 @@ settingsButton.addEventListener("click", toggleSettingsPanel);
 //
 // Seul le canevas change de couleurs entre les deux modes (voir style.css,
 // [data-theme="dark"]) ; le chrome (panneaux, menus) reste constant - c'est
-// la direction retenue le 25 sept (voir Decisions.md). refreshThemeFromCSS()
+// la direction retenue le 25 sept. refreshThemeFromCSS()
 // et render() suffisent à répercuter le changement : THEME (canvas.js) est
 // justement fait pour être relu à la demande.
 

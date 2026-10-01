@@ -2,7 +2,7 @@
 //
 // Strictement passive : aucune action, uniquement de l'information. C'est ce
 // qui la distingue du menu contextuel (actions sur la sélection) et du
-// panneau ⋮ (réglages du canevas) - voir docs/Backlog.md.
+// panneau ⋮ (réglages du canevas).
 //
 // Mise à jour depuis render() : c'est le seul point par lequel passe tout
 // changement visible (zoom, pan, sélection, glisser), donc l'affichage ne peut
